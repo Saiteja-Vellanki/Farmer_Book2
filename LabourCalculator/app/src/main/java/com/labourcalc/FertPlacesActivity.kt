@@ -16,13 +16,16 @@ class FertPlacesActivity : AppCompatActivity() {
 
     private lateinit var places: MutableList<FertPlace>
     private lateinit var adapter: FertAdapter
+    private val mode: String by lazy { intent.getStringExtra("mode") ?: "fert" }
+    private val titlePrefix: String
+        get() = if (mode == "spray") "🧪 Spraying" else "🌱 Drip Fertigation"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fert_list)
 
-        findViewById<TextView>(R.id.tvFertHeader).text = "🌱 Drip Fertigation — Places"
-        places = FertStore.load(this)
+        findViewById<TextView>(R.id.tvFertHeader).text = "$titlePrefix — Places"
+        places = FertStore.load(this, mode)
 
         val rv = findViewById<RecyclerView>(R.id.fertRecycler)
         rv.layoutManager = LinearLayoutManager(this)
@@ -31,6 +34,7 @@ class FertPlacesActivity : AppCompatActivity() {
                 startActivity(
                     Intent(this, FertSectionsActivity::class.java)
                         .putExtra("placeId", places[pos].id)
+                        .putExtra("mode", mode)
                 )
             },
             onLongClick = { pos -> confirmDelete(pos) })
@@ -43,7 +47,7 @@ class FertPlacesActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        places = FertStore.load(this)
+        places = FertStore.load(this, mode)
         adapter.rows = rows()
         adapter.notifyDataSetChanged()
     }
@@ -67,7 +71,7 @@ class FertPlacesActivity : AppCompatActivity() {
                     Toast.makeText(this, "Place name required", Toast.LENGTH_SHORT).show()
                 } else {
                     places.add(FertPlace(name = name, acres = acres))
-                    FertStore.save(this, places)
+                    FertStore.save(this, mode, places)
                     adapter.rows = rows()
                     adapter.notifyDataSetChanged()
                 }
@@ -82,7 +86,7 @@ class FertPlacesActivity : AppCompatActivity() {
             .setMessage("All sections and fertigation data of this place will be deleted.")
             .setPositiveButton("Delete") { _, _ ->
                 places.removeAt(pos)
-                FertStore.save(this, places)
+                FertStore.save(this, mode, places)
                 adapter.rows = rows()
                 adapter.notifyDataSetChanged()
             }

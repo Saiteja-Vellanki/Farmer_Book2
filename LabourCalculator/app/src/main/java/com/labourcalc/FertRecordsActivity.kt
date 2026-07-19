@@ -22,6 +22,7 @@ import java.util.Locale
 class FertRecordsActivity : AppCompatActivity() {
 
     private lateinit var places: MutableList<FertPlace>
+    private val mode: String by lazy { intent.getStringExtra("mode") ?: "fert" }
     private var placeId: Long = 0
     private var sectionId: Long = 0
     private lateinit var adapter: FertAdapter
@@ -36,7 +37,7 @@ class FertRecordsActivity : AppCompatActivity() {
 
         placeId = intent.getLongExtra("placeId", 0)
         sectionId = intent.getLongExtra("sectionId", 0)
-        places = FertStore.load(this)
+        places = FertStore.load(this, mode)
         val s = section ?: run { finish(); return }
 
         findViewById<TextView>(R.id.tvFertHeader).text =
@@ -50,7 +51,7 @@ class FertRecordsActivity : AppCompatActivity() {
         rv.adapter = adapter
 
         val fab = findViewById<ExtendedFloatingActionButton>(R.id.fertFab)
-        fab.text = "Add Fertigation"
+        fab.text = if (mode == "spray") "Add Spraying" else "Add Fertigation"
         fab.setOnClickListener { addRecordDialog() }
     }
 
@@ -99,7 +100,7 @@ class FertRecordsActivity : AppCompatActivity() {
         fun addFertRow() {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             val name = EditText(this).apply {
-                hint = "Fertilizer name"
+                hint = if (mode == "spray") "Chemical name" else "Fertilizer name"
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f)
             }
             val qty = EditText(this).apply {
@@ -122,13 +123,13 @@ class FertRecordsActivity : AppCompatActivity() {
         addFertRow()
 
         val addBtn = Button(this).apply {
-            text = "+ Add fertilizer"
+            text = if (mode == "spray") "+ Add chemical" else "+ Add fertilizer"
             setOnClickListener { addFertRow() }
         }
         container.addView(addBtn)
 
         AlertDialog.Builder(this)
-            .setTitle("Add Fertigation Record")
+            .setTitle(if (mode == "spray") "Add Spraying Record" else "Add Fertigation Record")
             .setMessage("Note: record cannot be changed after saving.")
             .setView(container)
             .setPositiveButton("Save") { _, _ ->
@@ -141,10 +142,10 @@ class FertRecordsActivity : AppCompatActivity() {
                     if (n.isNotBlank()) rec.items.add(FertItem(n, q, u))
                 }
                 if (rec.items.isEmpty()) {
-                    Toast.makeText(this, "Add at least one fertilizer", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, if (mode == "spray") "Add at least one chemical" else "Add at least one fertilizer", Toast.LENGTH_SHORT).show()
                 } else {
                     section?.records?.add(rec)
-                    FertStore.save(this, places)
+                    FertStore.save(this, mode, places)
                     adapter.rows = rows()
                     adapter.notifyDataSetChanged()
                 }
@@ -159,7 +160,7 @@ class FertRecordsActivity : AppCompatActivity() {
             .setTitle("Delete record of ${rec.date}?")
             .setPositiveButton("Delete") { _, _ ->
                 section?.records?.removeAll { it.id == rec.id }
-                FertStore.save(this, places)
+                FertStore.save(this, mode, places)
                 adapter.rows = rows()
                 adapter.notifyDataSetChanged()
             }

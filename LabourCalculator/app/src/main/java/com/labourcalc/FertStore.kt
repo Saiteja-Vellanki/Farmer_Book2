@@ -3,6 +3,7 @@ package com.labourcalc
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.concurrent.thread
 
 data class FertItem(var name: String = "", var qty: Double = 0.0, var unit: String = "kg")
 
@@ -26,11 +27,13 @@ data class FertPlace(
 )
 
 object FertStore {
-    private const val PREFS = "fert_store"
     private const val KEY = "places"
 
-    fun load(context: Context): MutableList<FertPlace> {
-        val json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private fun prefsName(mode: String) =
+        if (mode == "spray") "spray_store" else "fert_store"
+
+    fun load(context: Context, mode: String): MutableList<FertPlace> {
+        val json = context.getSharedPreferences(prefsName(mode), Context.MODE_PRIVATE)
             .getString(KEY, "[]") ?: "[]"
         val out = mutableListOf<FertPlace>()
         try {
@@ -69,7 +72,7 @@ object FertStore {
         return out
     }
 
-    fun save(context: Context, places: List<FertPlace>) {
+    fun save(context: Context, mode: String, places: List<FertPlace>) {
         val arr = JSONArray()
         for (p in places) {
             val secs = JSONArray()
@@ -91,7 +94,18 @@ object FertStore {
                     .put("acres", p.acres).put("sections", secs)
             )
         }
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        context.getSharedPreferences(prefsName(mode), Context.MODE_PRIVATE)
             .edit().putString(KEY, arr.toString()).apply()
+
+        // Mirror to its own Excel file (fertigation_data.xls / spraying_data.xls)
+        val app = context.applicationContext
+        val snapshot = places.toList()
+        thread {
+            try {
+                SetupManager.exportFertExcel(app, mode, snapshot)
+            } catch (e: Exception) {
+                // Excel mirror failed silently; JSON data is safe
+            }
+        }
     }
 }

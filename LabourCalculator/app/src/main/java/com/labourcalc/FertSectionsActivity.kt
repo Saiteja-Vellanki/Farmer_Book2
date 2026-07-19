@@ -12,6 +12,7 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 class FertSectionsActivity : AppCompatActivity() {
 
     private lateinit var places: MutableList<FertPlace>
+    private val mode: String by lazy { intent.getStringExtra("mode") ?: "fert" }
     private var placeId: Long = 0
     private lateinit var adapter: FertAdapter
 
@@ -22,7 +23,7 @@ class FertSectionsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_fert_list)
 
         placeId = intent.getLongExtra("placeId", 0)
-        places = FertStore.load(this)
+        places = FertStore.load(this, mode)
         val p = place ?: run { finish(); return }
 
         findViewById<TextView>(R.id.tvFertHeader).text = "📍 ${p.name} — Sections"
@@ -35,6 +36,7 @@ class FertSectionsActivity : AppCompatActivity() {
                     Intent(this, FertRecordsActivity::class.java)
                         .putExtra("placeId", placeId)
                         .putExtra("sectionId", place!!.sections[pos].id)
+                        .putExtra("mode", mode)
                 )
             },
             onLongClick = { pos -> confirmDelete(pos) })
@@ -47,7 +49,7 @@ class FertSectionsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        places = FertStore.load(this)
+        places = FertStore.load(this, mode)
         if (place == null) { finish(); return }
         adapter.rows = rows()
         adapter.notifyDataSetChanged()
@@ -64,7 +66,7 @@ class FertSectionsActivity : AppCompatActivity() {
             .setTitle("Add Section $next?")
             .setPositiveButton("Add") { _, _ ->
                 p.sections.add(FertSection(name = "Section $next"))
-                FertStore.save(this, places)
+                FertStore.save(this, mode, places)
                 adapter.rows = rows()
                 adapter.notifyDataSetChanged()
             }
@@ -79,7 +81,7 @@ class FertSectionsActivity : AppCompatActivity() {
             .setMessage("All fertigation records in this section will be deleted.")
             .setPositiveButton("Delete") { _, _ ->
                 p.sections.removeAt(pos)
-                FertStore.save(this, places)
+                FertStore.save(this, mode, places)
                 adapter.rows = rows()
                 adapter.notifyDataSetChanged()
             }

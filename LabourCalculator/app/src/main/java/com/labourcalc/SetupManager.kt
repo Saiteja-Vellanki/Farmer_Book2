@@ -20,8 +20,7 @@ object SetupManager {
     private const val PREFS = "setup_prefs"
     private const val KEY_ACTIVATED = "activated"
     private const val KEY_NAME = "user_name"
-    private const val EXCEL_NAME = "labour_data.xls"
-    private const val REL_DIR = "worker_data"
+    private const val REL_DIR = "Farmer_Book"
 
     @SuppressLint("HardwareIds")
     fun deviceId(context: Context): String =
@@ -42,9 +41,9 @@ object SetupManager {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY_NAME, "") ?: ""
 
-    /** OutputStream for Documents/worker_data/labour_data.xls.
+    /** OutputStream for Documents/worker_data/<fileName>.
      *  API 29+: MediaStore (no permission). API <=28: direct file (WRITE permission). */
-    private fun excelOutputStream(context: Context): OutputStream {
+    private fun excelOutputStream(context: Context, fileName: String): OutputStream {
         if (Build.VERSION.SDK_INT >= 29) {
             val resolver = context.contentResolver
             val collection = MediaStore.Files.getContentUri("external")
@@ -54,7 +53,7 @@ object SetupManager {
                     MediaStore.MediaColumns.DISPLAY_NAME + "=?"
             resolver.query(
                 collection, arrayOf(MediaStore.MediaColumns._ID),
-                sel, arrayOf("$relPath/", EXCEL_NAME), null
+                sel, arrayOf("$relPath/", fileName), null
             )?.use { c ->
                 if (c.moveToFirst()) {
                     val uri = ContentUris.withAppendedId(collection, c.getLong(0))
@@ -62,7 +61,7 @@ object SetupManager {
                 }
             }
             val cv = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, EXCEL_NAME)
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                 put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.ms-excel")
                 put(MediaStore.MediaColumns.RELATIVE_PATH, relPath)
             }
@@ -76,12 +75,12 @@ object SetupManager {
                 REL_DIR
             )
             if (!dir.exists()) dir.mkdirs()
-            return FileOutputStream(File(dir, EXCEL_NAME))
+            return FileOutputStream(File(dir, fileName))
         }
     }
 
     fun exportExcel(context: Context, labours: List<Labour>) {
-        excelOutputStream(context).use { out ->
+        excelOutputStream(context, "labour_data.xls").use { out ->
             val wb = Workbook.createWorkbook(out)
             val sheet = wb.createSheet("Labour Data", 0)
             val headers = listOf(
@@ -100,6 +99,38 @@ object SetupManager {
                 sheet.addCell(jxl.write.Number(6, r, l.balance))
                 sheet.addCell(Label(7, r, if (l.isPaid) "PAID" else "DUE"))
                 sheet.addCell(Label(8, r, l.note))
+            }
+            wb.write()
+            wb.close()
+        }
+    }
+
+    /** Writes fertigation or spraying data to its own Excel file. */
+    fun exportFertExcel(context: Context, mode: String, places: List<FertPlace>) {
+        val fileName = if (mode == "spray") "spraying_data.xls" else "fertigation_data.xls"
+        excelOutputStream(context, fileName).use { out ->
+            val wb = Workbook.createWorkbook(out)
+            val sheetName = if (mode == "spray") "Spraying Data" else "Fertigation Data"
+            val sheet = wb.createSheet(sheetName, 0)
+            val itemLabel = if (mode == "spray") "Chemical" else "Fertilizer"
+            val headers = listOf("Place", "Acres", "Section", "Date", itemLabel, "Quantity", "Unit")
+            headers.forEachIndexed { c, h -> sheet.addCell(Label(c, 0, h)) }
+            var r = 1
+            for (p in places) {
+                for (sec in p.sections) {
+                    for (rec in sec.records) {
+                        for (item in rec.items) {
+                            sheet.addCell(Label(0, r, p.name))
+                            sheet.addCell(jxl.write.Number(1, r, p.acres))
+                            sheet.addCell(Label(2, r, sec.name))
+                            sheet.addCell(Label(3, r, rec.date))
+                            sheet.addCell(Label(4, r, item.name))
+                            sheet.addCell(jxl.write.Number(5, r, item.qty))
+                            sheet.addCell(Label(6, r, item.unit))
+                            r++
+                        }
+                    }
+                }
             }
             wb.write()
             wb.close()

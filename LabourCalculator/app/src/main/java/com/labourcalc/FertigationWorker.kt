@@ -27,13 +27,16 @@ class FertigationWorker(context: Context, params: WorkerParameters) : Worker(con
         }.timeInMillis
 
         val upcoming = mutableListOf<String>()
-        for (p in FertStore.load(applicationContext)) {
-            for (s in p.sections) {
-                for (r in s.records) {
-                    val t = try { fmt.parse(r.date)?.time ?: 0L } catch (e: Exception) { 0L }
-                    if (t >= todayStart) {
-                        val ferts = r.items.joinToString(", ") { "${it.name} ${it.qty}${it.unit}" }
-                        upcoming.add("${p.name} › ${s.name}: ${r.date} ($ferts)")
+        for (mode in listOf("fert", "spray")) {
+            val tag = if (mode == "spray") "🧪" else "🌱"
+            for (p in FertStore.load(applicationContext, mode)) {
+                for (s in p.sections) {
+                    for (r in s.records) {
+                        val t = try { fmt.parse(r.date)?.time ?: 0L } catch (e: Exception) { 0L }
+                        if (t >= todayStart) {
+                            val ferts = r.items.joinToString(", ") { "${it.name} ${it.qty}${it.unit}" }
+                            upcoming.add("$tag ${p.name} › ${s.name}: ${r.date} ($ferts)")
+                        }
                     }
                 }
             }
@@ -54,7 +57,7 @@ class FertigationWorker(context: Context, params: WorkerParameters) : Worker(con
         val text = upcoming.joinToString("\n")
         val notif = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("🌱 Fertigation schedule (${upcoming.size})")
+            .setContentTitle("🌾 Farm schedule today (${upcoming.size})")
             .setContentText(upcoming.first())
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(pi)
