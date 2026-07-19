@@ -40,6 +40,7 @@ class SetupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_setup)
+        findViewById<android.view.View>(R.id.setupRoot).padBelowStatusBar()
 
         inName = findViewById(R.id.inName)
         inCode = findViewById(R.id.inOtp)

@@ -51,6 +51,7 @@ class WorkerEntryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_worker)
+        findViewById<android.view.View>(R.id.headerWorker).padBelowStatusBar()
 
         labours = LabourStore.load(this)
 

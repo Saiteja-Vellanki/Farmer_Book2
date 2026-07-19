@@ -21,6 +21,7 @@ class FertSectionsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fert_list)
+        findViewById<android.view.View>(R.id.tvFertHeader).padBelowStatusBar()
 
         placeId = intent.getLongExtra("placeId", 0)
         places = FertStore.load(this, mode)

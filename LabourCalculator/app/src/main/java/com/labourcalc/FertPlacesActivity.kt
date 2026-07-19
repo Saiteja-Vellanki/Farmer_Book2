@@ -23,6 +23,7 @@ class FertPlacesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fert_list)
+        findViewById<android.view.View>(R.id.tvFertHeader).padBelowStatusBar()
 
         findViewById<TextView>(R.id.tvFertHeader).text = "$titlePrefix — Places"
         places = FertStore.load(this, mode)
@@ -30,13 +31,7 @@ class FertPlacesActivity : AppCompatActivity() {
         val rv = findViewById<RecyclerView>(R.id.fertRecycler)
         rv.layoutManager = LinearLayoutManager(this)
         adapter = FertAdapter(rows(),
-            onClick = { pos ->
-                startActivity(
-                    Intent(this, FertSectionsActivity::class.java)
-                        .putExtra("placeId", places[pos].id)
-                        .putExtra("mode", mode)
-                )
-            },
+            onClick = { pos -> openPlace(pos) },
             onLongClick = { pos -> confirmDelete(pos) })
         rv.adapter = adapter
 
@@ -52,8 +47,35 @@ class FertPlacesActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
     }
 
+    private fun openPlace(pos: Int) {
+        val p = places[pos]
+        if (mode == "spray") {
+            // Spraying has no sections - go straight to records via a hidden default section
+            if (p.sections.isEmpty()) {
+                p.sections.add(FertSection(name = "Main"))
+                FertStore.save(this, mode, places)
+            }
+            startActivity(
+                Intent(this, FertRecordsActivity::class.java)
+                    .putExtra("placeId", p.id)
+                    .putExtra("sectionId", p.sections[0].id)
+                    .putExtra("mode", mode)
+            )
+        } else {
+            startActivity(
+                Intent(this, FertSectionsActivity::class.java)
+                    .putExtra("placeId", p.id)
+                    .putExtra("mode", mode)
+            )
+        }
+    }
+
     private fun rows() = places.map {
-        Pair("📍 ${it.name}", "${it.acres} acres  •  ${it.sections.size} sections")
+        val sub = if (mode == "spray")
+            "${it.acres} acres  •  ${it.sections.sumOf { s -> s.records.size }} spraying records"
+        else
+            "${it.acres} acres  •  ${it.sections.size} sections"
+        Pair("📍 ${it.name}", sub)
     }
 
     private fun addPlaceDialog() {

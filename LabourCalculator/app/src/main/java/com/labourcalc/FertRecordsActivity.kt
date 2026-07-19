@@ -34,6 +34,7 @@ class FertRecordsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fert_list)
+        findViewById<android.view.View>(R.id.tvFertHeader).padBelowStatusBar()
 
         placeId = intent.getLongExtra("placeId", 0)
         sectionId = intent.getLongExtra("sectionId", 0)
@@ -41,7 +42,8 @@ class FertRecordsActivity : AppCompatActivity() {
         val s = section ?: run { finish(); return }
 
         findViewById<TextView>(R.id.tvFertHeader).text =
-            "📍 ${place!!.name} › ${s.name}"
+            if (mode == "spray") "🧪 ${place!!.name} — Spraying"
+            else "📍 ${place!!.name} › ${s.name}"
 
         val rv = findViewById<RecyclerView>(R.id.fertRecycler)
         rv.layoutManager = LinearLayoutManager(this)

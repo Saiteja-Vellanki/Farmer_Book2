@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_main)
+        findViewById<android.view.View>(R.id.headerHome).padBelowStatusBar()
 
         findViewById<TextView>(R.id.tvWelcome).text =
             "Welcome to ${SetupManager.userName(this)}"
@@ -57,13 +58,4 @@ class MainActivity : AppCompatActivity() {
         FertigationWorker.schedule(this)
     }
 
-    override fun onResume() {
-        super.onResume()
-        val labours = LabourStore.load(this)
-        val due = labours.filter { !it.isPaid }.sumOf { it.balance }
-        val paidCount = labours.count { it.isPaid }
-        findViewById<TextView>(R.id.chipTotal).text = "📋 ${labours.size}"
-        findViewById<TextView>(R.id.chipPaid).text = "✅ $paidCount Paid"
-        findViewById<TextView>(R.id.chipDue).text = "⏳ Due ₹${"%.0f".format(due)}"
-    }
 }
