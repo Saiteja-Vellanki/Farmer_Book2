@@ -36,6 +36,7 @@ class FertPlacesActivity : AppCompatActivity() {
         rv.adapter = adapter
 
         val fab = findViewById<ExtendedFloatingActionButton>(R.id.fertFab)
+        fab.liftAboveNavBar()
         fab.text = "Add Place"
         fab.setOnClickListener { addPlaceDialog() }
     }

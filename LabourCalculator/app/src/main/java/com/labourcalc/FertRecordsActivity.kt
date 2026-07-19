@@ -53,6 +53,7 @@ class FertRecordsActivity : AppCompatActivity() {
         rv.adapter = adapter
 
         val fab = findViewById<ExtendedFloatingActionButton>(R.id.fertFab)
+        fab.liftAboveNavBar()
         fab.text = if (mode == "spray") "Add Spraying" else "Add Fertigation"
         fab.setOnClickListener { addRecordDialog() }
     }

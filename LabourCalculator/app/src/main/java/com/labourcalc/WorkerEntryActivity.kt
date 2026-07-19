@@ -72,7 +72,9 @@ class WorkerEntryActivity : AppCompatActivity() {
         )
         rv.adapter = adapter
 
-        findViewById<ExtendedFloatingActionButton>(R.id.fabAdd).setOnClickListener { showDialog(null) }
+        val fab = findViewById<ExtendedFloatingActionButton>(R.id.fabAdd)
+        fab.liftAboveNavBar()
+        fab.setOnClickListener { showDialog(null) }
 
         if (Build.VERSION.SDK_INT <= 28 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)

@@ -44,6 +44,7 @@ class FertSectionsActivity : AppCompatActivity() {
         rv.adapter = adapter
 
         val fab = findViewById<ExtendedFloatingActionButton>(R.id.fertFab)
+        fab.liftAboveNavBar()
         fab.text = "Add Section"
         fab.setOnClickListener { addSection() }
     }
