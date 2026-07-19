@@ -1,0 +1,92 @@
+package com.labourcalc
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+
+class FertPlacesActivity : AppCompatActivity() {
+
+    private lateinit var places: MutableList<FertPlace>
+    private lateinit var adapter: FertAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_fert_list)
+
+        findViewById<TextView>(R.id.tvFertHeader).text = "🌱 Drip Fertigation — Places"
+        places = FertStore.load(this)
+
+        val rv = findViewById<RecyclerView>(R.id.fertRecycler)
+        rv.layoutManager = LinearLayoutManager(this)
+        adapter = FertAdapter(rows(),
+            onClick = { pos ->
+                startActivity(
+                    Intent(this, FertSectionsActivity::class.java)
+                        .putExtra("placeId", places[pos].id)
+                )
+            },
+            onLongClick = { pos -> confirmDelete(pos) })
+        rv.adapter = adapter
+
+        val fab = findViewById<ExtendedFloatingActionButton>(R.id.fertFab)
+        fab.text = "Add Place"
+        fab.setOnClickListener { addPlaceDialog() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        places = FertStore.load(this)
+        adapter.rows = rows()
+        adapter.notifyDataSetChanged()
+    }
+
+    private fun rows() = places.map {
+        Pair("📍 ${it.name}", "${it.acres} acres  •  ${it.sections.size} sections")
+    }
+
+    private fun addPlaceDialog() {
+        val v = LayoutInflater.from(this).inflate(R.layout.dialog_fert_place, null)
+        val inPlace = v.findViewById<EditText>(R.id.inFertPlace)
+        val inAcres = v.findViewById<EditText>(R.id.inFertAcres)
+        AlertDialog.Builder(this)
+            .setTitle("Add Place")
+            .setMessage("Note: place details cannot be changed after saving.")
+            .setView(v)
+            .setPositiveButton("Save") { _, _ ->
+                val name = inPlace.text.toString().trim()
+                val acres = inAcres.text.toString().toDoubleOrNull() ?: 0.0
+                if (name.isBlank()) {
+                    Toast.makeText(this, "Place name required", Toast.LENGTH_SHORT).show()
+                } else {
+                    places.add(FertPlace(name = name, acres = acres))
+                    FertStore.save(this, places)
+                    adapter.rows = rows()
+                    adapter.notifyDataSetChanged()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun confirmDelete(pos: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete ${places[pos].name}?")
+            .setMessage("All sections and fertigation data of this place will be deleted.")
+            .setPositiveButton("Delete") { _, _ ->
+                places.removeAt(pos)
+                FertStore.save(this, places)
+                adapter.rows = rows()
+                adapter.notifyDataSetChanged()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+}

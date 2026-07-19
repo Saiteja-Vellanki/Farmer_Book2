@@ -1,0 +1,4 @@
+-keep class jxl.** { *; }
+-dontwarn jxl.**
+-dontwarn java.awt.**
+-dontwarn javax.swing.**
