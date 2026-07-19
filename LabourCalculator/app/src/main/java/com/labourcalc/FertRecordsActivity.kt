@@ -116,8 +116,7 @@ class FertRecordsActivity : AppCompatActivity() {
                 adapter = ArrayAdapter(
                     this@FertRecordsActivity,
                     android.R.layout.simple_spinner_dropdown_item,
-                    listOf("kg", "liters")
-                )
+                   listOf("kg", "gms", "liters", "ml")                
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.7f)
             }
             row.addView(name); row.addView(qty); row.addView(unit)
