@@ -105,29 +105,54 @@ object SetupManager {
         }
     }
 
-    /** Writes fertigation or spraying data to its own Excel file. */
+    /** Writes fertigation, spraying, or sale data to its own Excel file. */
     fun exportFertExcel(context: Context, mode: String, places: List<FertPlace>) {
-        val fileName = if (mode == "spray") "spraying_data.xls" else "fertigation_data.xls"
+        val fileName = when (mode) {
+            "spray" -> "spraying_data.xls"
+            "sale" -> "sale_data.xls"
+            else -> "fertigation_data.xls"
+        }
         excelOutputStream(context, fileName).use { out ->
             val wb = Workbook.createWorkbook(out)
-            val sheetName = if (mode == "spray") "Spraying Data" else "Fertigation Data"
-            val sheet = wb.createSheet(sheetName, 0)
-            val itemLabel = if (mode == "spray") "Chemical" else "Fertilizer"
-            val headers = listOf("Place", "Acres", "Section", "Date", itemLabel, "Quantity", "Unit")
-            headers.forEachIndexed { c, h -> sheet.addCell(Label(c, 0, h)) }
-            var r = 1
-            for (p in places) {
-                for (sec in p.sections) {
-                    for (rec in sec.records) {
-                        for (item in rec.items) {
-                            sheet.addCell(Label(0, r, p.name))
-                            sheet.addCell(jxl.write.Number(1, r, p.acres))
-                            sheet.addCell(Label(2, r, sec.name))
-                            sheet.addCell(Label(3, r, rec.date))
-                            sheet.addCell(Label(4, r, item.name))
-                            sheet.addCell(jxl.write.Number(5, r, item.qty))
-                            sheet.addCell(Label(6, r, item.unit))
-                            r++
+            if (mode == "sale") {
+                val sheet = wb.createSheet("Sale Data", 0)
+                val headers = listOf("Place", "Date", "Item", "Kgs", "Price", "Amount")
+                headers.forEachIndexed { c, h -> sheet.addCell(Label(c, 0, h)) }
+                var r = 1
+                var grand = 0.0
+                for (p in places) for (sec in p.sections) for (rec in sec.records) for (item in rec.items) {
+                    val amount = item.qty * item.price
+                    grand += amount
+                    sheet.addCell(Label(0, r, p.name))
+                    sheet.addCell(Label(1, r, rec.date))
+                    sheet.addCell(Label(2, r, item.name))
+                    sheet.addCell(jxl.write.Number(3, r, item.qty))
+                    sheet.addCell(jxl.write.Number(4, r, item.price))
+                    sheet.addCell(jxl.write.Number(5, r, amount))
+                    r++
+                }
+                sheet.addCell(Label(4, r + 1, "TOTAL"))
+                sheet.addCell(jxl.write.Number(5, r + 1, grand))
+            } else {
+                val sheetName = if (mode == "spray") "Spraying Data" else "Fertigation Data"
+                val sheet = wb.createSheet(sheetName, 0)
+                val itemLabel = if (mode == "spray") "Chemical" else "Fertilizer"
+                val headers = listOf("Place", "Acres", "Section", "Date", itemLabel, "Quantity", "Unit")
+                headers.forEachIndexed { c, h -> sheet.addCell(Label(c, 0, h)) }
+                var r = 1
+                for (p in places) {
+                    for (sec in p.sections) {
+                        for (rec in sec.records) {
+                            for (item in rec.items) {
+                                sheet.addCell(Label(0, r, p.name))
+                                sheet.addCell(jxl.write.Number(1, r, p.acres))
+                                sheet.addCell(Label(2, r, sec.name))
+                                sheet.addCell(Label(3, r, rec.date))
+                                sheet.addCell(Label(4, r, item.name))
+                                sheet.addCell(jxl.write.Number(5, r, item.qty))
+                                sheet.addCell(Label(6, r, item.unit))
+                                r++
+                            }
                         }
                     }
                 }

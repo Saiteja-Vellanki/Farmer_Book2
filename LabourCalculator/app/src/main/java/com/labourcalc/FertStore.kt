@@ -5,7 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.concurrent.thread
 
-data class FertItem(var name: String = "", var qty: Double = 0.0, var unit: String = "kg")
+data class FertItem(var name: String = "", var qty: Double = 0.0, var unit: String = "kg", var price: Double = 0.0)
 
 data class FertRecord(
     var id: Long = System.currentTimeMillis(),
@@ -29,8 +29,11 @@ data class FertPlace(
 object FertStore {
     private const val KEY = "places"
 
-    private fun prefsName(mode: String) =
-        if (mode == "spray") "spray_store" else "fert_store"
+    private fun prefsName(mode: String) = when (mode) {
+        "spray" -> "spray_store"
+        "sale" -> "sale_store"
+        else -> "fert_store"
+    }
 
     fun load(context: Context, mode: String): MutableList<FertPlace> {
         val json = context.getSharedPreferences(prefsName(mode), Context.MODE_PRIVATE)
@@ -58,7 +61,8 @@ object FertStore {
                             val it = items.getJSONObject(m)
                             rec.items.add(
                                 FertItem(
-                                    it.optString("n"), it.optDouble("q", 0.0), it.optString("u", "kg")
+                                    it.optString("n"), it.optDouble("q", 0.0),
+                                    it.optString("u", "kg"), it.optDouble("p", 0.0)
                                 )
                             )
                         }
@@ -81,7 +85,7 @@ object FertStore {
                 for (r in s.records) {
                     val items = JSONArray()
                     for (it in r.items) {
-                        items.put(JSONObject().put("n", it.name).put("q", it.qty).put("u", it.unit))
+                        items.put(JSONObject().put("n", it.name).put("q", it.qty).put("u", it.unit).put("p", it.price))
                     }
                     recs.put(
                         JSONObject().put("id", r.id).put("date", r.date).put("items", items)

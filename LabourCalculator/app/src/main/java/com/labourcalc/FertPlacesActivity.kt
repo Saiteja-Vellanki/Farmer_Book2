@@ -18,7 +18,11 @@ class FertPlacesActivity : AppCompatActivity() {
     private lateinit var adapter: FertAdapter
     private val mode: String by lazy { intent.getStringExtra("mode") ?: "fert" }
     private val titlePrefix: String
-        get() = if (mode == "spray") "🧪 Spraying" else "🌱 Drip Fertigation"
+        get() = when (mode) {
+            "spray" -> "🧪 Spraying"
+            "sale" -> "💰 Sales"
+            else -> "🌱 Drip Fertigation"
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,8 +54,8 @@ class FertPlacesActivity : AppCompatActivity() {
 
     private fun openPlace(pos: Int) {
         val p = places[pos]
-        if (mode == "spray") {
-            // Spraying has no sections - go straight to records via a hidden default section
+        if (mode == "spray" || mode == "sale") {
+            // Spraying and Sales have no sections - go straight to records
             if (p.sections.isEmpty()) {
                 p.sections.add(FertSection(name = "Main"))
                 FertStore.save(this, mode, places)
@@ -71,12 +75,16 @@ class FertPlacesActivity : AppCompatActivity() {
         }
     }
 
-    private fun rows() = places.map {
-        val sub = if (mode == "spray")
-            "${it.acres} acres  •  ${it.sections.sumOf { s -> s.records.size }} spraying records"
-        else
-            "${it.acres} acres  •  ${it.sections.size} sections"
-        Pair("📍 ${it.name}", sub)
+    private fun rows() = places.map { p ->
+        val sub = when (mode) {
+            "spray" -> "${p.acres} acres  •  ${p.sections.sumOf { s -> s.records.size }} spraying records"
+            "sale" -> {
+                val total = p.sections.sumOf { s -> s.records.sumOf { r -> r.items.sumOf { it.qty * it.price } } }
+                "${p.sections.sumOf { s -> s.records.size }} sales  •  Total ₹${"%.0f".format(total)}"
+            }
+            else -> "${p.acres} acres  •  ${p.sections.size} sections"
+        }
+        Pair("📍 ${p.name}", sub)
     }
 
     private fun addPlaceDialog() {

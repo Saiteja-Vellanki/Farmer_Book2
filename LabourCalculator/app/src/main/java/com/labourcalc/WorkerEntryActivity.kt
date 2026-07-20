@@ -68,7 +68,7 @@ class WorkerEntryActivity : AppCompatActivity() {
             labours,
             onEdit = { showDialog(it) },
             onMarkPaid = { markPaid(it) },
-            onDelete = { confirmDelete(it) }
+            onDelete = { deleteOptions(it) }
         )
         rv.adapter = adapter
 
@@ -143,6 +143,39 @@ class WorkerEntryActivity : AppCompatActivity() {
     private fun markPaid(l: Labour) {
         l.amountPaid = l.total
         refresh()
+    }
+
+    private fun deleteOptions(l: Labour) {
+        AlertDialog.Builder(this)
+            .setItems(arrayOf("Delete this entry", "Select multiple to delete")) { _, which ->
+                if (which == 0) confirmDelete(l) else multiDeleteDialog()
+            }
+            .show()
+    }
+
+    private fun multiDeleteDialog() {
+        if (labours.isEmpty()) return
+        val labels = labours.map {
+            "${it.date}  ${it.place}  ₹${"%.0f".format(it.total)}"
+        }.toTypedArray()
+        val checked = BooleanArray(labels.size)
+        AlertDialog.Builder(this)
+            .setTitle("Select entries to delete")
+            .setMultiChoiceItems(labels, checked) { _, i, b -> checked[i] = b }
+            .setPositiveButton("Delete") { _, _ ->
+                val toRemove = labours.filterIndexed { i, _ -> checked[i] }
+                if (toRemove.isEmpty()) return@setPositiveButton
+                AlertDialog.Builder(this)
+                    .setTitle("Delete ${toRemove.size} entries?")
+                    .setPositiveButton("Yes, delete") { _, _ ->
+                        labours.removeAll(toRemove)
+                        refresh()
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun confirmDelete(l: Labour) {

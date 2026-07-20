@@ -11,8 +11,8 @@ android {
         applicationId = "com.labourcalc"
         minSdk = 24
         targetSdk = 35
-        versionCode = 9
-        versionName = "4.5"
+        versionCode = 11
+        versionName = "5.1"
     }
 
     signingConfigs {

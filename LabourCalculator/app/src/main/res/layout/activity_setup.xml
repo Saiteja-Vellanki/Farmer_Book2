@@ -16,7 +16,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="8dp"
             android:text="🙏"
             android:textSize="48sp" />
 
@@ -40,7 +40,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="20dp"
             android:text="YOUR DEVICE CODE"
             android:textColor="#E1D5F5"
             android:textSize="13sp"
@@ -92,7 +92,7 @@
             android:id="@+id/inName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="18dp"
             android:background="#FFFFFF"
             android:hint="Enter your name"
             android:inputType="textPersonName"

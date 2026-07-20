@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import android.graphics.BitmapFactory
+import android.widget.ImageView
 import androidx.cardview.widget.CardView
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -33,6 +35,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvWelcome).text =
             "Welcome to ${SetupManager.userName(this)}"
 
+        findViewById<ImageView>(R.id.profileIcon).setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
         findViewById<CardView>(R.id.cardWorker).setOnClickListener {
             startActivity(Intent(this, WorkerEntryActivity::class.java))
         }
@@ -44,6 +49,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<CardView>(R.id.cardSpray).setOnClickListener {
             startActivity(
                 Intent(this, FertPlacesActivity::class.java).putExtra("mode", "spray")
+            )
+        }
+        findViewById<CardView>(R.id.cardSale).setOnClickListener {
+            startActivity(
+                Intent(this, FertPlacesActivity::class.java).putExtra("mode", "sale")
             )
         }
 
@@ -58,4 +68,15 @@ class MainActivity : AppCompatActivity() {
         FertigationWorker.schedule(this)
     }
 
+    override fun onResume() {
+        super.onResume()
+        findViewById<TextView>(R.id.tvWelcome).text =
+            "Welcome to ${SetupManager.userName(this)}"
+        val f = ProfileActivity.profilePhotoFile(this)
+        if (f.exists()) {
+            BitmapFactory.decodeFile(f.absolutePath)?.let {
+                findViewById<ImageView>(R.id.profileIcon).setImageBitmap(it)
+            }
+        }
+    }
 }
