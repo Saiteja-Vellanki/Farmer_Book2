@@ -6,6 +6,7 @@ import android.text.InputType
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
@@ -35,7 +36,7 @@ class FertRecordsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fert_list)
-        findViewById<android.view.View>(R.id.tvFertHeader).padBelowStatusBar()
+        findViewById<android.view.View>(R.id.fertHeaderBox).padBelowStatusBar()
 
         placeId = intent.getLongExtra("placeId", 0)
         sectionId = intent.getLongExtra("sectionId", 0)
@@ -52,9 +53,9 @@ class FertRecordsActivity : AppCompatActivity() {
         val fab = findViewById<ExtendedFloatingActionButton>(R.id.fertFab)
         fab.liftAboveNavBar()
         fab.text = when (mode) {
-            "sale" -> "Add Sale"
-            "spray" -> "Add Spraying"
-            else -> "Add Fertigation"
+            "sale" -> getString(R.string.add_sale_btn)
+            "spray" -> getString(R.string.add_spraying)
+            else -> getString(R.string.add_fertigation)
         }
         fab.setOnClickListener { showRecordDialog(null) }
 
@@ -65,10 +66,25 @@ class FertRecordsActivity : AppCompatActivity() {
         section?.records?.sumOf { r -> r.items.sumOf { it.qty * it.price } } ?: 0.0
 
     private fun updateHeader() {
-        findViewById<TextView>(R.id.tvFertHeader).text = when (mode) {
-            "sale" -> "💰 ${place!!.name} — Sales\nTotal: ₹${"%.0f".format(totalSales())}"
-            "spray" -> "🧪 ${place!!.name} — Spraying"
-            else -> "📍 ${place!!.name} › ${section!!.name}"
+        val header = findViewById<TextView>(R.id.tvFertHeader)
+        val chipsRow = findViewById<LinearLayout>(R.id.fertChipsRow)
+        when (mode) {
+            "sale" -> {
+                header.text = getString(R.string.sales_title, place!!.name)
+                chipsRow.visibility = View.VISIBLE
+                findViewById<TextView>(R.id.chipFertA).text =
+                    getString(R.string.n_sales_chip, section?.records?.size ?: 0)
+                findViewById<TextView>(R.id.chipFertB).text =
+                    getString(R.string.total_sales_chip, "%.0f".format(totalSales()))
+            }
+            "spray" -> {
+                header.text = getString(R.string.spray_header, place!!.name)
+                chipsRow.visibility = View.GONE
+            }
+            else -> {
+                header.text = "📍 ${place!!.name} › ${section!!.name}"
+                chipsRow.visibility = View.GONE
+            }
         }
     }
 
@@ -93,7 +109,7 @@ class FertRecordsActivity : AppCompatActivity() {
                 Pair(title, sub)
             } else {
                 val future = dateMillis(r.date) > todayStart
-                val title = if (future) "📅 ${r.date}  ⏳ upcoming" else "📅 ${r.date}"
+                val title = if (future) "📅 ${r.date}  " + getString(R.string.upcoming) else "📅 ${r.date}"
                 val sub = r.items.joinToString("\n") { "• ${it.name}: ${it.qty} ${it.unit}" }
                 Pair(title, sub)
             }
@@ -113,7 +129,7 @@ class FertRecordsActivity : AppCompatActivity() {
         }
 
         val dateField = EditText(this).apply {
-            hint = "Date (tap to pick) *"
+            hint = getString(R.string.hint_date)
             isFocusable = false
             isClickable = true
             setText(if (existing != null && existing.date.isNotBlank()) existing.date
@@ -134,15 +150,15 @@ class FertRecordsActivity : AppCompatActivity() {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             val name = EditText(this).apply {
                 hint = when (mode) {
-                    "sale" -> "Item name"
-                    "spray" -> "Chemical name"
-                    else -> "Fertilizer name"
+                    "sale" -> getString(R.string.hint_item)
+                    "spray" -> getString(R.string.hint_chemical)
+                    else -> getString(R.string.hint_fertilizer)
                 }
                 setText(item?.name ?: "")
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.1f)
             }
             val qty = EditText(this).apply {
-                hint = if (mode == "sale") "Kgs" else "Qty"
+                hint = if (mode == "sale") getString(R.string.hint_kgs) else getString(R.string.hint_qty)
                 inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                 if (item != null && item.qty > 0) setText(item.qty.toString())
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.55f)
@@ -151,7 +167,7 @@ class FertRecordsActivity : AppCompatActivity() {
             row.addView(qty)
             if (mode == "sale") {
                 val price = EditText(this).apply {
-                    hint = "Price"
+                    hint = getString(R.string.hint_price)
                     inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                     if (item != null && item.price > 0) setText(item.price.toString())
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.65f)
@@ -181,23 +197,23 @@ class FertRecordsActivity : AppCompatActivity() {
 
         val addBtn = Button(this).apply {
             text = when (mode) {
-                "sale" -> "+ Add item"
-                "spray" -> "+ Add chemical"
-                else -> "+ Add fertilizer"
+                "sale" -> getString(R.string.add_item_btn)
+                "spray" -> getString(R.string.add_chemical_btn)
+                else -> getString(R.string.add_fertilizer_btn)
             }
             setOnClickListener { addItemRow(null) }
         }
         container.addView(addBtn)
 
         val titleWord = when (mode) {
-            "sale" -> "Sale"
-            "spray" -> "Spraying"
-            else -> "Fertigation"
+            "sale" -> getString(R.string.word_sale)
+            "spray" -> getString(R.string.word_spray)
+            else -> getString(R.string.word_fert)
         }
         AlertDialog.Builder(this)
-            .setTitle(if (existing == null) "Add $titleWord" else "Edit $titleWord")
+            .setTitle(if (existing == null) getString(R.string.add_x, titleWord) else getString(R.string.edit_x, titleWord))
             .setView(container)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(R.string.save) { _, _ ->
                 val items = mutableListOf<FertItem>()
                 for (i in 0 until rowsHolder.childCount) {
                     val row = rowsHolder.getChildAt(i) as LinearLayout
@@ -213,7 +229,7 @@ class FertRecordsActivity : AppCompatActivity() {
                     }
                 }
                 if (items.isEmpty()) {
-                    Toast.makeText(this, "Add at least one item", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.at_least_one), Toast.LENGTH_SHORT).show()
                 } else {
                     val date = dateField.text.toString().trim()
                         .ifBlank { fmt.format(Calendar.getInstance().time) }
@@ -227,13 +243,13 @@ class FertRecordsActivity : AppCompatActivity() {
                     refreshList()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
     private fun deleteOptions(pos: Int) {
         AlertDialog.Builder(this)
-            .setItems(arrayOf("Delete this record", "Select multiple to delete")) { _, which ->
+            .setItems(arrayOf(getString(R.string.delete_this_record), getString(R.string.select_multiple))) { _, which ->
                 if (which == 0) confirmDelete(pos) else multiDeleteDialog()
             }
             .show()
@@ -246,39 +262,39 @@ class FertRecordsActivity : AppCompatActivity() {
             if (mode == "sale")
                 "${r.date}  ₹${"%.0f".format(r.items.sumOf { it.qty * it.price })}"
             else
-                "${r.date}  (${r.items.size} items)"
+                "${r.date}  " + getString(R.string.n_items, r.items.size)
         }.toTypedArray()
         val checked = BooleanArray(labels.size)
         AlertDialog.Builder(this)
-            .setTitle("Select records to delete")
+            .setTitle(R.string.select_records)
             .setMultiChoiceItems(labels, checked) { _, i, b -> checked[i] = b }
-            .setPositiveButton("Delete") { _, _ ->
+            .setPositiveButton(R.string.delete) { _, _ ->
                 val ids = recs.filterIndexed { i, _ -> checked[i] }.map { it.id }
                 if (ids.isEmpty()) return@setPositiveButton
                 AlertDialog.Builder(this)
-                    .setTitle("Delete ${ids.size} records?")
-                    .setPositiveButton("Yes, delete") { _, _ ->
+                    .setTitle(getString(R.string.delete_n_records, ids.size))
+                    .setPositiveButton(R.string.yes_delete) { _, _ ->
                         section?.records?.removeAll { it.id in ids }
                         FertStore.save(this, mode, places)
                         refreshList()
                     }
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.cancel, null)
                     .show()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
     private fun confirmDelete(pos: Int) {
         val rec = sortedRecords().getOrNull(pos) ?: return
         AlertDialog.Builder(this)
-            .setTitle("Delete record of ${rec.date}?")
-            .setPositiveButton("Delete") { _, _ ->
+            .setTitle(getString(R.string.delete_record_q, rec.date))
+            .setPositiveButton(R.string.delete) { _, _ ->
                 section?.records?.removeAll { it.id == rec.id }
                 FertStore.save(this, mode, places)
                 refreshList()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 }

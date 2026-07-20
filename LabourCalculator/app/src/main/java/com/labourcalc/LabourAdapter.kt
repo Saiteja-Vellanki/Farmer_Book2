@@ -44,16 +44,16 @@ class LabourAdapter(
             h.note.visibility = View.GONE
         }
 
-        h.total.text = "Total ₹${"%.0f".format(l.total)}"
-        h.paid.text = "Paid ₹${"%.0f".format(l.amountPaid)}"
-        h.balance.text = "Bal ₹${"%.0f".format(l.balance)}"
+        h.total.text = h.itemView.context.getString(R.string.total_chip, "%.0f".format(l.total))
+        h.paid.text = h.itemView.context.getString(R.string.paid_chip2, "%.0f".format(l.amountPaid))
+        h.balance.text = h.itemView.context.getString(R.string.bal_chip, "%.0f".format(l.balance))
 
         if (l.isPaid) {
-            h.status.text = "PAID ✔"
+            h.status.text = h.itemView.context.getString(R.string.paid_badge)
             h.status.setBackgroundResource(R.drawable.bg_status_paid)
             h.btnPaid.visibility = View.GONE
         } else {
-            h.status.text = "DUE ₹${"%.0f".format(l.balance)}"
+            h.status.text = h.itemView.context.getString(R.string.due_badge, "%.0f".format(l.balance))
             h.status.setBackgroundResource(R.drawable.bg_status_due)
             h.btnPaid.visibility = View.VISIBLE
         }

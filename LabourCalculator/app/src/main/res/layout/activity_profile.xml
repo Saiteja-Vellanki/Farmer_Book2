@@ -18,7 +18,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👤 Profile"
+            android:text="@string/profile_title"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -41,7 +41,7 @@
             android:paddingRight="14dp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp"
-            android:text="📷 Change photo"
+            android:text="@string/change_photo"
             android:textColor="#FFFFFF"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -70,7 +70,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Owner name"
+                    android:text="@string/owner_name"
                     android:textColor="#607D8B"
                     android:textSize="13sp" />
 
@@ -108,7 +108,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Device code"
+                    android:text="@string/device_code_label"
                     android:textColor="#607D8B"
                     android:textSize="13sp" />
 
@@ -130,7 +130,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="App version"
+                    android:text="@string/app_version"
                     android:textColor="#607D8B"
                     android:textSize="13sp" />
 
@@ -152,7 +152,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Admin contact"
+                    android:text="@string/admin_contact"
                     android:textColor="#607D8B"
                     android:textSize="13sp" />
 
@@ -163,6 +163,44 @@
                     android:textColor="#33691E"
                     android:textSize="16sp"
                     android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="#E0E0E0" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/language"
+                    android:textColor="#607D8B"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvLanguage"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:textColor="#1B5E20"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnEditLanguage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="6dp"
+                        android:text="🌐"
+                        android:textSize="20sp" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
     </LinearLayout>

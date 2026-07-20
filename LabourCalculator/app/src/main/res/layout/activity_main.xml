@@ -100,7 +100,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Worker Entry"
+                                android:text="@string/worker_entry"
                                 android:textColor="#1B5E20"
                                 android:textSize="19sp"
                                 android:textStyle="bold" />
@@ -109,7 +109,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="Add and manage worker details"
+                                android:text="@string/worker_entry_sub"
                                 android:textColor="#607D8B"
                                 android:textSize="14sp" />
                         </LinearLayout>
@@ -158,7 +158,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Drip Fertigation"
+                                android:text="@string/drip_fert"
                                 android:textColor="#1B5E20"
                                 android:textSize="19sp"
                                 android:textStyle="bold" />
@@ -167,7 +167,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="Manage drip fertigation schedules and records"
+                                android:text="@string/drip_fert_sub"
                                 android:textColor="#607D8B"
                                 android:textSize="14sp" />
                         </LinearLayout>
@@ -215,7 +215,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Spraying"
+                                android:text="@string/spraying"
                                 android:textColor="#1B5E20"
                                 android:textSize="19sp"
                                 android:textStyle="bold" />
@@ -224,7 +224,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="Manage spraying schedules and records"
+                                android:text="@string/spraying_sub"
                                 android:textColor="#607D8B"
                                 android:textSize="14sp" />
                         </LinearLayout>
@@ -275,7 +275,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Sale"
+                                android:text="@string/sale"
                                 android:textColor="#1B5E20"
                                 android:textSize="19sp"
                                 android:textStyle="bold" />
@@ -284,7 +284,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="Record crop sales: item, kgs and price"
+                                android:text="@string/sale_sub"
                                 android:textColor="#607D8B"
                                 android:textSize="14sp" />
                         </LinearLayout>

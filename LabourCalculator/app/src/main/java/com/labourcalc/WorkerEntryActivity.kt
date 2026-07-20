@@ -39,10 +39,10 @@ class WorkerEntryActivity : AppCompatActivity() {
             if (uri != null) {
                 val restored = SetupManager.importExcel(this, uri)
                 if (restored.isEmpty()) {
-                    Toast.makeText(this, "No entries found in that file", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.no_entries_file), Toast.LENGTH_LONG).show()
                 } else {
                     labours.addAll(restored)
-                    Toast.makeText(this, "Imported ${restored.size} entries ✔", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.imported_n, restored.size), Toast.LENGTH_LONG).show()
                     refresh()
                 }
             }
@@ -87,10 +87,10 @@ class WorkerEntryActivity : AppCompatActivity() {
 
         if (labours.isEmpty()) {
             AlertDialog.Builder(this)
-                .setTitle("Restore data?")
-                .setMessage("If you have a previous labour_data.xls backup in Documents/Farmer_Book, you can restore it now.")
-                .setPositiveButton("Choose file") { _, _ -> openImportPicker() }
-                .setNegativeButton("Start fresh", null)
+                .setTitle(R.string.restore_title)
+                .setMessage(R.string.restore_msg)
+                .setPositiveButton(R.string.choose_file) { _, _ -> openImportPicker() }
+                .setNegativeButton(R.string.start_fresh, null)
                 .show()
         }
 
@@ -124,9 +124,9 @@ class WorkerEntryActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
         val due = labours.filter { !it.isPaid }.sumOf { it.balance }
         val paidCount = labours.count { it.isPaid }
-        chipTotal.text = "📋 ${labours.size}"
-        chipPaid.text = "✅ $paidCount Paid"
-        chipDue.text = "⏳ Due ₹${"%.0f".format(due)}"
+        chipTotal.text = getString(R.string.chip_entries, labours.size)
+        chipPaid.text = getString(R.string.chip_paid, paidCount)
+        chipDue.text = getString(R.string.chip_due, "%.0f".format(due))
         LabourStore.save(this, labours)
         val snapshot = labours.toList()
         thread {
@@ -147,7 +147,7 @@ class WorkerEntryActivity : AppCompatActivity() {
 
     private fun deleteOptions(l: Labour) {
         AlertDialog.Builder(this)
-            .setItems(arrayOf("Delete this entry", "Select multiple to delete")) { _, which ->
+            .setItems(arrayOf(getString(R.string.delete_this_entry), getString(R.string.select_multiple))) { _, which ->
                 if (which == 0) confirmDelete(l) else multiDeleteDialog()
             }
             .show()
@@ -160,31 +160,31 @@ class WorkerEntryActivity : AppCompatActivity() {
         }.toTypedArray()
         val checked = BooleanArray(labels.size)
         AlertDialog.Builder(this)
-            .setTitle("Select entries to delete")
+            .setTitle(R.string.select_entries)
             .setMultiChoiceItems(labels, checked) { _, i, b -> checked[i] = b }
-            .setPositiveButton("Delete") { _, _ ->
+            .setPositiveButton(R.string.delete) { _, _ ->
                 val toRemove = labours.filterIndexed { i, _ -> checked[i] }
                 if (toRemove.isEmpty()) return@setPositiveButton
                 AlertDialog.Builder(this)
-                    .setTitle("Delete ${toRemove.size} entries?")
-                    .setPositiveButton("Yes, delete") { _, _ ->
+                    .setTitle(getString(R.string.delete_n_entries, toRemove.size))
+                    .setPositiveButton(R.string.yes_delete) { _, _ ->
                         labours.removeAll(toRemove)
                         refresh()
                     }
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.cancel, null)
                     .show()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
     private fun confirmDelete(l: Labour) {
         AlertDialog.Builder(this)
-            .setTitle("Delete ${l.place} (${l.date})?")
-            .setPositiveButton("Delete") { _, _ ->
+            .setTitle(getString(R.string.delete_q, "${l.place} (${l.date})"))
+            .setPositiveButton(R.string.delete) { _, _ ->
                 labours.remove(l); refresh()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -220,9 +220,9 @@ class WorkerEntryActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle(if (existing == null) "Add Entry" else "Edit Entry")
+            .setTitle(if (existing == null) getString(R.string.add_entry) else getString(R.string.edit_entry))
             .setView(v)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(R.string.save) { _, _ ->
                 val l = existing ?: Labour().also { labours.add(it) }
                 l.date = date.text.toString().trim().ifBlank { today() }
                 l.place = place.text.toString().trim()
@@ -232,7 +232,7 @@ class WorkerEntryActivity : AppCompatActivity() {
                 l.amountPaid = paid.text.toString().toDoubleOrNull() ?: 0.0
                 refresh()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 }

@@ -26,7 +26,7 @@
                 android:id="@+id/tvWorkerHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="👨‍🌾 Worker Entry"
+                android:text="@string/worker_header"
                 android:textColor="#FFFFFF"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -95,7 +95,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
-        android:text="Add Labour"
+        android:text="@string/add_labour"
         android:textColor="#FFFFFF"
         app:icon="@android:drawable/ic_input_add"
         app:iconTint="#FFFFFF"

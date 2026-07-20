@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Welcome"
+            android:text="@string/setup_welcome"
             android:textColor="#FFFFFF"
             android:textSize="30sp"
             android:textStyle="bold" />
@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="One-time activation"
+            android:text="@string/setup_sub"
             android:textColor="#E1D5F5"
             android:textSize="15sp" />
 
@@ -41,7 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="YOUR DEVICE CODE"
+            android:text="@string/your_device_code"
             android:textColor="#E1D5F5"
             android:textSize="13sp"
             android:letterSpacing="0.1" />
@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:backgroundTint="#25D366"
-            android:text="📲 Share Device Code on WhatsApp"
+            android:text="@string/share_wa"
             android:textColor="#FFFFFF"
             android:textStyle="bold" />
 
@@ -83,7 +83,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Admin contact: +91 96669 77855"
+            android:text="@string/admin_contact_setup"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -94,7 +94,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:background="#FFFFFF"
-            android:hint="Enter your name"
+            android:hint="@string/hint_your_name"
             android:inputType="textPersonName"
             android:padding="14dp"
             android:textColor="#212121"
@@ -106,7 +106,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:background="#FFFFFF"
-            android:hint="Enter 6-digit Activation Code"
+            android:hint="@string/hint_activation"
             android:inputType="number"
             android:maxLength="6"
             android:padding="14dp"
@@ -119,7 +119,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:backgroundTint="#2E7D32"
-            android:text="Activate &amp; Login"
+            android:text="@string/activate_login"
             android:textColor="#FFFFFF"
             android:textStyle="bold" />
     </LinearLayout>

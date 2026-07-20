@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.EditText
+import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -19,18 +21,19 @@ class FertPlacesActivity : AppCompatActivity() {
     private val mode: String by lazy { intent.getStringExtra("mode") ?: "fert" }
     private val titlePrefix: String
         get() = when (mode) {
-            "spray" -> "🧪 Spraying"
-            "sale" -> "💰 Sales"
-            else -> "🌱 Drip Fertigation"
+            "spray" -> getString(R.string.prefix_spray)
+            "sale" -> getString(R.string.prefix_sale)
+            else -> getString(R.string.prefix_fert)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fert_list)
-        findViewById<android.view.View>(R.id.tvFertHeader).padBelowStatusBar()
+        findViewById<android.view.View>(R.id.fertHeaderBox).padBelowStatusBar()
 
-        findViewById<TextView>(R.id.tvFertHeader).text = "$titlePrefix — Places"
+        findViewById<TextView>(R.id.tvFertHeader).text = getString(R.string.places_title, titlePrefix)
         places = FertStore.load(this, mode)
+        updateChips()
 
         val rv = findViewById<RecyclerView>(R.id.fertRecycler)
         rv.layoutManager = LinearLayoutManager(this)
@@ -41,7 +44,7 @@ class FertPlacesActivity : AppCompatActivity() {
 
         val fab = findViewById<ExtendedFloatingActionButton>(R.id.fertFab)
         fab.liftAboveNavBar()
-        fab.text = "Add Place"
+        fab.text = getString(R.string.add_place)
         fab.setOnClickListener { addPlaceDialog() }
     }
 
@@ -50,6 +53,22 @@ class FertPlacesActivity : AppCompatActivity() {
         places = FertStore.load(this, mode)
         adapter.rows = rows()
         adapter.notifyDataSetChanged()
+        updateChips()
+    }
+
+    private fun updateChips() {
+        val chipsRow = findViewById<LinearLayout>(R.id.fertChipsRow)
+        if (mode == "sale") {
+            val grand = places.sumOf { p ->
+                p.sections.sumOf { s -> s.records.sumOf { r -> r.items.sumOf { it.qty * it.price } } }
+            }
+            val count = places.sumOf { p -> p.sections.sumOf { s -> s.records.size } }
+            chipsRow.visibility = View.VISIBLE
+            findViewById<TextView>(R.id.chipFertA).text = "🧾 $count sales"
+            findViewById<TextView>(R.id.chipFertB).text = "💰 Total ₹${"%.0f".format(grand)}"
+        } else {
+            chipsRow.visibility = View.GONE
+        }
     }
 
     private fun openPlace(pos: Int) {
@@ -77,12 +96,12 @@ class FertPlacesActivity : AppCompatActivity() {
 
     private fun rows() = places.map { p ->
         val sub = when (mode) {
-            "spray" -> "${p.acres} acres  •  ${p.sections.sumOf { s -> s.records.size }} spraying records"
+            "spray" -> getString(R.string.sub_spray, p.acres.toString(), p.sections.sumOf { s -> s.records.size })
             "sale" -> {
                 val total = p.sections.sumOf { s -> s.records.sumOf { r -> r.items.sumOf { it.qty * it.price } } }
-                "${p.sections.sumOf { s -> s.records.size }} sales  •  Total ₹${"%.0f".format(total)}"
+                getString(R.string.sub_sale, p.sections.sumOf { s -> s.records.size }, "%.0f".format(total))
             }
-            else -> "${p.acres} acres  •  ${p.sections.size} sections"
+            else -> getString(R.string.sub_fert, p.acres.toString(), p.sections.size)
         }
         Pair("📍 ${p.name}", sub)
     }
@@ -92,36 +111,38 @@ class FertPlacesActivity : AppCompatActivity() {
         val inPlace = v.findViewById<EditText>(R.id.inFertPlace)
         val inAcres = v.findViewById<EditText>(R.id.inFertAcres)
         AlertDialog.Builder(this)
-            .setTitle("Add Place")
-            .setMessage("Note: place details cannot be changed after saving.")
+            .setTitle(R.string.add_place)
+            .setMessage(R.string.place_locked)
             .setView(v)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(R.string.save) { _, _ ->
                 val name = inPlace.text.toString().trim()
                 val acres = inAcres.text.toString().toDoubleOrNull() ?: 0.0
                 if (name.isBlank()) {
-                    Toast.makeText(this, "Place name required", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.place_name_required), Toast.LENGTH_SHORT).show()
                 } else {
                     places.add(FertPlace(name = name, acres = acres))
                     FertStore.save(this, mode, places)
                     adapter.rows = rows()
                     adapter.notifyDataSetChanged()
+                    updateChips()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
     private fun confirmDelete(pos: Int) {
         AlertDialog.Builder(this)
-            .setTitle("Delete ${places[pos].name}?")
-            .setMessage("All sections and fertigation data of this place will be deleted.")
-            .setPositiveButton("Delete") { _, _ ->
+            .setTitle(getString(R.string.delete_q, places[pos].name))
+            .setMessage(R.string.delete_place_msg)
+            .setPositiveButton(R.string.delete) { _, _ ->
                 places.removeAt(pos)
                 FertStore.save(this, mode, places)
                 adapter.rows = rows()
                 adapter.notifyDataSetChanged()
+                updateChips()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 }

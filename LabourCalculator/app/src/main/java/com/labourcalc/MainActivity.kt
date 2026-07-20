@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<android.view.View>(R.id.headerHome).padBelowStatusBar()
 
         findViewById<TextView>(R.id.tvWelcome).text =
-            "Welcome to ${SetupManager.userName(this)}"
+            getString(R.string.welcome_to, SetupManager.userName(this))
 
         findViewById<ImageView>(R.id.profileIcon).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
@@ -71,11 +71,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         findViewById<TextView>(R.id.tvWelcome).text =
-            "Welcome to ${SetupManager.userName(this)}"
+            getString(R.string.welcome_to, SetupManager.userName(this))
         val f = ProfileActivity.profilePhotoFile(this)
         if (f.exists()) {
             BitmapFactory.decodeFile(f.absolutePath)?.let {
-                findViewById<ImageView>(R.id.profileIcon).setImageBitmap(it)
+                findViewById<ImageView>(R.id.profileIcon)
+                    .setImageBitmap(ProfileActivity.circleCrop(it))
             }
         }
     }

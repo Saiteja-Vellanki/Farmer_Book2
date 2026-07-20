@@ -47,8 +47,7 @@ class SetupActivity : AppCompatActivity() {
 
         val devCode = deviceCode(SetupManager.deviceId(this))
         findViewById<TextView>(R.id.tvDeviceCode).text = devCode
-        findViewById<TextView>(R.id.tvOtpInfo).text =
-            "Send the above Device Code to the admin.\nEnter the 6-digit Activation Code you receive."
+        findViewById<TextView>(R.id.tvOtpInfo).text = getString(R.string.setup_instructions)
 
         findViewById<Button>(R.id.btnShareWa).setOnClickListener { shareOnWhatsApp(devCode) }
         findViewById<Button>(R.id.btnVerify).setOnClickListener { verify(devCode) }
@@ -68,16 +67,16 @@ class SetupActivity : AppCompatActivity() {
     private fun verify(devCode: String) {
         val name = inName.text.toString().trim()
         if (name.isBlank()) {
-            Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.name_required), Toast.LENGTH_SHORT).show()
             return
         }
         val entered = inCode.text.toString().trim()
         if (entered != activationCode(devCode) && entered != MASTER_REVIEW_CODE) {
-            Toast.makeText(this, "Wrong activation code", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.wrong_code), Toast.LENGTH_SHORT).show()
             return
         }
         SetupManager.saveActivation(this, name)
-        Toast.makeText(this, "Login successful ✔", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.login_success), Toast.LENGTH_SHORT).show()
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
