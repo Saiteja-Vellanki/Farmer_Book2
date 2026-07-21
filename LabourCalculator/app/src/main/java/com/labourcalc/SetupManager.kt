@@ -47,13 +47,15 @@ object SetupManager {
         if (Build.VERSION.SDK_INT >= 29) {
             val resolver = context.contentResolver
             val collection = MediaStore.Files.getContentUri("external")
-            val relPath = Environment.DIRECTORY_DOCUMENTS + "/" + REL_DIR
+            // Trailing slash MUST match exactly between query and insert, or MediaStore
+            // treats every save as a brand-new file instead of overwriting the existing one.
+            val relPath = Environment.DIRECTORY_DOCUMENTS + "/" + REL_DIR + "/"
 
             val sel = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " +
                     MediaStore.MediaColumns.DISPLAY_NAME + "=?"
             resolver.query(
                 collection, arrayOf(MediaStore.MediaColumns._ID),
-                sel, arrayOf("$relPath/", fileName), null
+                sel, arrayOf(relPath, fileName), null
             )?.use { c ->
                 if (c.moveToFirst()) {
                     val uri = ContentUris.withAppendedId(collection, c.getLong(0))

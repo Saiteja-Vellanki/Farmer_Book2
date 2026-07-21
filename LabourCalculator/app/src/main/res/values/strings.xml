@@ -116,4 +116,5 @@
     <string name="total_sales_chip">💰 Total ₹%1$s</string>
     <string name="hint_buyer">Buyer name</string>
     <string name="sub_fert_records">%1$s acres  •  %2$d fertigation records</string>
+    <string name="total_kgs_chip">⚖️ %1$s kg</string>
 </resources>

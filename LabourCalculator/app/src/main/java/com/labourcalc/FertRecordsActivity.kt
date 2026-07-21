@@ -65,6 +65,9 @@ class FertRecordsActivity : AppCompatActivity() {
     private fun totalSales(): Double =
         section?.records?.sumOf { r -> r.items.sumOf { it.qty * it.price } } ?: 0.0
 
+    private fun totalKgs(): Double =
+        section?.records?.sumOf { r -> r.items.sumOf { it.qty } } ?: 0.0
+
     private fun updateHeader() {
         val header = findViewById<TextView>(R.id.tvFertHeader)
         val chipsRow = findViewById<LinearLayout>(R.id.fertChipsRow)
@@ -76,6 +79,8 @@ class FertRecordsActivity : AppCompatActivity() {
                     getString(R.string.n_sales_chip, section?.records?.size ?: 0)
                 findViewById<TextView>(R.id.chipFertB).text =
                     getString(R.string.total_sales_chip, "%.0f".format(totalSales()))
+                findViewById<TextView>(R.id.chipFertC).text =
+                    getString(R.string.total_kgs_chip, "%.1f".format(totalKgs()))
             }
             "spray" -> {
                 header.text = getString(R.string.spray_header, place!!.name)

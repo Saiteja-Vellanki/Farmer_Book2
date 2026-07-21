@@ -115,4 +115,5 @@
     <string name="total_sales_chip">💰 ಒಟ್ಟು ₹%1$s</string>
     <string name="hint_buyer">ಖರೀದಿದಾರರ ಹೆಸರು</string>
     <string name="sub_fert_records">%1$s ಎಕರೆ  •  %2$d ಫರ್ಟಿಗೇಶನ್ ದಾಖಲೆಗಳು</string>
+    <string name="total_kgs_chip">⚖️ %1$s ಕೆಜಿ</string>
 </resources>
