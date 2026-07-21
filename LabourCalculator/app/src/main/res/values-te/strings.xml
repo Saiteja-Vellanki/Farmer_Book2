@@ -113,4 +113,6 @@
     <string name="sales_title">💰 %1$s — అమ్మకాలు</string>
     <string name="n_sales_chip">🧾 %1$d అమ్మకాలు</string>
     <string name="total_sales_chip">💰 మొత్తం ₹%1$s</string>
+    <string name="hint_buyer">కొనుగోలుదారు పేరు</string>
+    <string name="sub_fert_records">%1$s ఎకరాలు  •  %2$d ఫర్టిగేషన్ రికార్డులు</string>
 </resources>

@@ -116,7 +116,7 @@ object SetupManager {
             val wb = Workbook.createWorkbook(out)
             if (mode == "sale") {
                 val sheet = wb.createSheet("Sale Data", 0)
-                val headers = listOf("Place", "Date", "Item", "Kgs", "Price", "Amount")
+                val headers = listOf("Place", "Date", "Buyer", "Item", "Kgs", "Price", "Amount")
                 headers.forEachIndexed { c, h -> sheet.addCell(Label(c, 0, h)) }
                 var r = 1
                 var grand = 0.0
@@ -125,14 +125,15 @@ object SetupManager {
                     grand += amount
                     sheet.addCell(Label(0, r, p.name))
                     sheet.addCell(Label(1, r, rec.date))
-                    sheet.addCell(Label(2, r, item.name))
-                    sheet.addCell(jxl.write.Number(3, r, item.qty))
-                    sheet.addCell(jxl.write.Number(4, r, item.price))
-                    sheet.addCell(jxl.write.Number(5, r, amount))
+                    sheet.addCell(Label(2, r, rec.buyer))
+                    sheet.addCell(Label(3, r, item.name))
+                    sheet.addCell(jxl.write.Number(4, r, item.qty))
+                    sheet.addCell(jxl.write.Number(5, r, item.price))
+                    sheet.addCell(jxl.write.Number(6, r, amount))
                     r++
                 }
-                sheet.addCell(Label(4, r + 1, "TOTAL"))
-                sheet.addCell(jxl.write.Number(5, r + 1, grand))
+                sheet.addCell(Label(5, r + 1, "TOTAL"))
+                sheet.addCell(jxl.write.Number(6, r + 1, grand))
             } else {
                 val sheetName = if (mode == "spray") "Spraying Data" else "Fertigation Data"
                 val sheet = wb.createSheet(sheetName, 0)

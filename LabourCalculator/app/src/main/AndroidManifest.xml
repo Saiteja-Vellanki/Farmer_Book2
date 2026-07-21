@@ -37,9 +37,6 @@
             android:name=".FertPlacesActivity"
             android:exported="false" />
         <activity
-            android:name=".FertSectionsActivity"
-            android:exported="false" />
-        <activity
             android:name=".FertRecordsActivity"
             android:exported="false" />
 

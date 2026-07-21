@@ -114,4 +114,6 @@
     <string name="sales_title">💰 %1$s — Sales</string>
     <string name="n_sales_chip">🧾 %1$d sales</string>
     <string name="total_sales_chip">💰 Total ₹%1$s</string>
+    <string name="hint_buyer">Buyer name</string>
+    <string name="sub_fert_records">%1$s acres  •  %2$d fertigation records</string>
 </resources>

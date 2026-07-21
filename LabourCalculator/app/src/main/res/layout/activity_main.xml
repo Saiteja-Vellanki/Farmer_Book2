@@ -257,13 +257,11 @@
                         android:gravity="center_vertical"
                         android:padding="18dp">
 
-                        <TextView
+                        <ImageView
                             android:layout_width="64dp"
                             android:layout_height="64dp"
-                            android:background="@drawable/bg_circle_green"
-                            android:gravity="center"
-                            android:text="💰"
-                            android:textSize="30sp" />
+                            android:contentDescription="icon"
+                            android:src="@drawable/ic_menu_sale" />
 
                         <LinearLayout
                             android:orientation="vertical"

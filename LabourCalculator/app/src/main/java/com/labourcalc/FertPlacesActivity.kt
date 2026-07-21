@@ -73,35 +73,28 @@ class FertPlacesActivity : AppCompatActivity() {
 
     private fun openPlace(pos: Int) {
         val p = places[pos]
-        if (mode == "spray" || mode == "sale") {
-            // Spraying and Sales have no sections - go straight to records
-            if (p.sections.isEmpty()) {
-                p.sections.add(FertSection(name = "Main"))
-                FertStore.save(this, mode, places)
-            }
-            startActivity(
-                Intent(this, FertRecordsActivity::class.java)
-                    .putExtra("placeId", p.id)
-                    .putExtra("sectionId", p.sections[0].id)
-                    .putExtra("mode", mode)
-            )
-        } else {
-            startActivity(
-                Intent(this, FertSectionsActivity::class.java)
-                    .putExtra("placeId", p.id)
-                    .putExtra("mode", mode)
-            )
+        // Places go straight to records for every mode - no separate Sections screen
+        if (p.sections.isEmpty()) {
+            p.sections.add(FertSection(name = "Main"))
+            FertStore.save(this, mode, places)
         }
+        startActivity(
+            Intent(this, FertRecordsActivity::class.java)
+                .putExtra("placeId", p.id)
+                .putExtra("sectionId", p.sections[0].id)
+                .putExtra("mode", mode)
+        )
     }
 
     private fun rows() = places.map { p ->
         val sub = when (mode) {
             "spray" -> getString(R.string.sub_spray, p.acres.toString(), p.sections.sumOf { s -> s.records.size })
+            "fert" -> getString(R.string.sub_fert_records, p.acres.toString(), p.sections.sumOf { s -> s.records.size })
             "sale" -> {
                 val total = p.sections.sumOf { s -> s.records.sumOf { r -> r.items.sumOf { it.qty * it.price } } }
                 getString(R.string.sub_sale, p.sections.sumOf { s -> s.records.size }, "%.0f".format(total))
             }
-            else -> getString(R.string.sub_fert, p.acres.toString(), p.sections.size)
+            else -> getString(R.string.sub_fert_records, p.acres.toString(), p.sections.sumOf { s -> s.records.size })
         }
         Pair("📍 ${p.name}", sub)
     }

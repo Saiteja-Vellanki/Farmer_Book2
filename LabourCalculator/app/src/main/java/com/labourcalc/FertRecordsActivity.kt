@@ -82,7 +82,7 @@ class FertRecordsActivity : AppCompatActivity() {
                 chipsRow.visibility = View.GONE
             }
             else -> {
-                header.text = "📍 ${place!!.name} › ${section!!.name}"
+                header.text = "📍 ${place!!.name}"
                 chipsRow.visibility = View.GONE
             }
         }
@@ -102,7 +102,8 @@ class FertRecordsActivity : AppCompatActivity() {
         return sortedRecords().map { r ->
             if (mode == "sale") {
                 val total = r.items.sumOf { it.qty * it.price }
-                val title = "📅 ${r.date}   ₹${"%.0f".format(total)}"
+                val buyerTxt = if (r.buyer.isNotBlank()) "  •  🧑 ${r.buyer}" else ""
+                val title = "📅 ${r.date}$buyerTxt   ₹${"%.0f".format(total)}"
                 val sub = r.items.joinToString("\n") {
                     "• ${it.name}: ${"%.1f".format(it.qty)} kg × ₹${"%.0f".format(it.price)} = ₹${"%.0f".format(it.qty * it.price)}"
                 }
@@ -142,6 +143,14 @@ class FertRecordsActivity : AppCompatActivity() {
             }
         }
         container.addView(dateField)
+
+        val buyerField = if (mode == "sale") {
+            EditText(this).apply {
+                hint = getString(R.string.hint_buyer)
+                setText(existing?.buyer ?: "")
+            }
+        } else null
+        buyerField?.let { container.addView(it) }
 
         val rowsHolder = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         container.addView(rowsHolder)
@@ -233,10 +242,12 @@ class FertRecordsActivity : AppCompatActivity() {
                 } else {
                     val date = dateField.text.toString().trim()
                         .ifBlank { fmt.format(Calendar.getInstance().time) }
+                    val buyer = buyerField?.text?.toString()?.trim() ?: ""
                     if (existing == null) {
-                        section?.records?.add(FertRecord(date = date, items = items))
+                        section?.records?.add(FertRecord(date = date, buyer = buyer, items = items))
                     } else {
                         existing.date = date
+                        existing.buyer = buyer
                         existing.items = items
                     }
                     FertStore.save(this, mode, places)

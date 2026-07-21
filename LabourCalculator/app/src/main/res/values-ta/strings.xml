@@ -113,4 +113,6 @@
     <string name="sales_title">💰 %1$s — விற்பனை</string>
     <string name="n_sales_chip">🧾 %1$d விற்பனை</string>
     <string name="total_sales_chip">💰 மொத்தம் ₹%1$s</string>
+    <string name="hint_buyer">வாங்குபவர் பெயர்</string>
+    <string name="sub_fert_records">%1$s ஏக்கர்  •  %2$d உரமூட்டல் பதிவுகள்</string>
 </resources>
