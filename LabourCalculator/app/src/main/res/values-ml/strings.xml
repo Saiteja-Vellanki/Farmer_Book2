@@ -115,5 +115,7 @@
     <string name="total_sales_chip">💰 ആകെ ₹%1$s</string>
     <string name="hint_buyer">വാങ്ങുന്നയാളുടെ പേര്</string>
     <string name="sub_fert_records">%1$s ഏക്കർ  •  %2$d ഫെർട്ടിഗേഷൻ രേഖകൾ</string>
-    <string name="total_kgs_chip">⚖️ %1$s കിലോ</string>
+    <string name="total_kgs_chip">⚖️ %1$s</string>
+    <string name="upcoming_title">🔔 വരാനിരിക്കുന്ന ജോലികൾ</string>
+    <string name="no_upcoming">വരാനിരിക്കുന്ന ജോലികളില്ല</string>
 </resources>

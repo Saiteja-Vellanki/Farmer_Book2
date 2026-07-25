@@ -118,7 +118,7 @@ object SetupManager {
             val wb = Workbook.createWorkbook(out)
             if (mode == "sale") {
                 val sheet = wb.createSheet("Sale Data", 0)
-                val headers = listOf("Place", "Date", "Buyer", "Item", "Kgs", "Price", "Amount")
+                val headers = listOf("Place", "Date", "Buyer", "Item", "Qty", "Unit", "Price", "Amount")
                 headers.forEachIndexed { c, h -> sheet.addCell(Label(c, 0, h)) }
                 var r = 1
                 var grand = 0.0
@@ -130,17 +130,18 @@ object SetupManager {
                     sheet.addCell(Label(2, r, rec.buyer))
                     sheet.addCell(Label(3, r, item.name))
                     sheet.addCell(jxl.write.Number(4, r, item.qty))
-                    sheet.addCell(jxl.write.Number(5, r, item.price))
-                    sheet.addCell(jxl.write.Number(6, r, amount))
+                    sheet.addCell(Label(5, r, item.unit))
+                    sheet.addCell(jxl.write.Number(6, r, item.price))
+                    sheet.addCell(jxl.write.Number(7, r, amount))
                     r++
                 }
-                sheet.addCell(Label(5, r + 1, "TOTAL"))
-                sheet.addCell(jxl.write.Number(6, r + 1, grand))
+                sheet.addCell(Label(6, r + 1, "TOTAL"))
+                sheet.addCell(jxl.write.Number(7, r + 1, grand))
             } else {
                 val sheetName = if (mode == "spray") "Spraying Data" else "Fertigation Data"
                 val sheet = wb.createSheet(sheetName, 0)
                 val itemLabel = if (mode == "spray") "Chemical" else "Fertilizer"
-                val headers = listOf("Place", "Acres", "Section", "Date", itemLabel, "Quantity", "Unit")
+                val headers = listOf("Place", "Acres", "Section", "Date", itemLabel, "Quantity", "Unit", "Note")
                 headers.forEachIndexed { c, h -> sheet.addCell(Label(c, 0, h)) }
                 var r = 1
                 for (p in places) {
@@ -154,6 +155,7 @@ object SetupManager {
                                 sheet.addCell(Label(4, r, item.name))
                                 sheet.addCell(jxl.write.Number(5, r, item.qty))
                                 sheet.addCell(Label(6, r, item.unit))
+                                sheet.addCell(Label(7, r, rec.note))
                                 r++
                             }
                         }

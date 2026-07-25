@@ -50,6 +50,11 @@
             android:exported="false" />
 
         <activity
+            android:name=".UpcomingActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:exported="false" />
+
+        <activity
             android:name=".ProfileActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:exported="false" />

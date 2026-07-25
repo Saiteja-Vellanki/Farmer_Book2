@@ -29,6 +29,7 @@ class FertRecordsActivity : AppCompatActivity() {
     private lateinit var adapter: FertAdapter
     private val fmt = SimpleDateFormat("dd/MM/yyyy", Locale.US)
     private val units = listOf("kg", "gms", "liters", "ml")
+    private val saleUnits = listOf("kgs", "pieces", "tons", "liters")
 
     private val place: FertPlace? get() = places.find { it.id == placeId }
     private val section: FertSection? get() = place?.sections?.find { it.id == sectionId }
@@ -65,8 +66,20 @@ class FertRecordsActivity : AppCompatActivity() {
     private fun totalSales(): Double =
         section?.records?.sumOf { r -> r.items.sumOf { it.qty * it.price } } ?: 0.0
 
-    private fun totalKgs(): Double =
-        section?.records?.sumOf { r -> r.items.sumOf { it.qty } } ?: 0.0
+    /** Total quantity of one record, grouped by unit e.g. "1365 kgs" or "40 kgs + 3 pieces" */
+    private fun recordQtyText(r: FertRecord): String =
+        r.items.groupBy { it.unit }
+            .map { (unit, list) -> "${"%.1f".format(list.sumOf { it.qty })} $unit" }
+            .joinToString(" + ")
+
+    /** Grand total quantity across all sale records, grouped by unit. */
+    private fun totalQtyText(): String {
+        val all = section?.records?.flatMap { it.items } ?: emptyList()
+        if (all.isEmpty()) return "0"
+        return all.groupBy { it.unit }
+            .map { (unit, list) -> "${"%.1f".format(list.sumOf { it.qty })} $unit" }
+            .joinToString(" + ")
+    }
 
     private fun updateHeader() {
         val header = findViewById<TextView>(R.id.tvFertHeader)
@@ -80,7 +93,7 @@ class FertRecordsActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.chipFertB).text =
                     getString(R.string.total_sales_chip, "%.0f".format(totalSales()))
                 findViewById<TextView>(R.id.chipFertC).text =
-                    getString(R.string.total_kgs_chip, "%.1f".format(totalKgs()))
+                    getString(R.string.total_kgs_chip, totalQtyText())
             }
             "spray" -> {
                 header.text = getString(R.string.spray_header, place!!.name)
@@ -108,15 +121,17 @@ class FertRecordsActivity : AppCompatActivity() {
             if (mode == "sale") {
                 val total = r.items.sumOf { it.qty * it.price }
                 val buyerTxt = if (r.buyer.isNotBlank()) "  •  🧑 ${r.buyer}" else ""
-                val title = "📅 ${r.date}$buyerTxt   ₹${"%.0f".format(total)}"
+                val qtyTxt = recordQtyText(r)
+                val title = "📅 ${r.date}$buyerTxt   ₹${"%.0f".format(total)}   ⚖️ $qtyTxt"
                 val sub = r.items.joinToString("\n") {
-                    "• ${it.name}: ${"%.1f".format(it.qty)} kg × ₹${"%.0f".format(it.price)} = ₹${"%.0f".format(it.qty * it.price)}"
+                    "• ${it.name}: ${"%.1f".format(it.qty)} ${it.unit} × ₹${"%.0f".format(it.price)} = ₹${"%.0f".format(it.qty * it.price)}"
                 }
                 Pair(title, sub)
             } else {
                 val future = dateMillis(r.date) > todayStart
                 val title = if (future) "📅 ${r.date}  " + getString(R.string.upcoming) else "📅 ${r.date}"
-                val sub = r.items.joinToString("\n") { "• ${it.name}: ${it.qty} ${it.unit}" }
+                var sub = r.items.joinToString("\n") { "• ${it.name}: ${it.qty} ${it.unit}" }
+                if (r.note.isNotBlank()) sub += "\n📝 ${r.note}"
                 Pair(title, sub)
             }
         }
@@ -157,6 +172,14 @@ class FertRecordsActivity : AppCompatActivity() {
         } else null
         buyerField?.let { container.addView(it) }
 
+        val noteField = if (mode != "sale") {
+            EditText(this).apply {
+                hint = getString(R.string.hint_note)
+                setText(existing?.note ?: "")
+            }
+        } else null
+        noteField?.let { container.addView(it) }
+
         val rowsHolder = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         container.addView(rowsHolder)
 
@@ -180,11 +203,22 @@ class FertRecordsActivity : AppCompatActivity() {
             row.addView(name)
             row.addView(qty)
             if (mode == "sale") {
+                val unit = Spinner(this).apply {
+                    adapter = ArrayAdapter(
+                        this@FertRecordsActivity,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        saleUnits
+                    )
+                    val idx = saleUnits.indexOf(item?.unit ?: "kgs")
+                    setSelection(if (idx >= 0) idx else 0)
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.62f)
+                }
+                row.addView(unit)
                 val price = EditText(this).apply {
                     hint = getString(R.string.hint_price)
                     inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                     if (item != null && item.price > 0) setText(item.price.toString())
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.65f)
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.6f)
                 }
                 row.addView(price)
             } else {
@@ -235,8 +269,9 @@ class FertRecordsActivity : AppCompatActivity() {
                     val q = (row.getChildAt(1) as EditText).text.toString().toDoubleOrNull() ?: 0.0
                     if (n.isBlank()) continue
                     if (mode == "sale") {
-                        val pr = (row.getChildAt(2) as EditText).text.toString().toDoubleOrNull() ?: 0.0
-                        items.add(FertItem(n, q, "kg", pr))
+                        val u = (row.getChildAt(2) as Spinner).selectedItem.toString()
+                        val pr = (row.getChildAt(3) as EditText).text.toString().toDoubleOrNull() ?: 0.0
+                        items.add(FertItem(n, q, u, pr))
                     } else {
                         val u = (row.getChildAt(2) as Spinner).selectedItem.toString()
                         items.add(FertItem(n, q, u))
@@ -248,11 +283,13 @@ class FertRecordsActivity : AppCompatActivity() {
                     val date = dateField.text.toString().trim()
                         .ifBlank { fmt.format(Calendar.getInstance().time) }
                     val buyer = buyerField?.text?.toString()?.trim() ?: ""
+                    val note = noteField?.text?.toString()?.trim() ?: ""
                     if (existing == null) {
-                        section?.records?.add(FertRecord(date = date, buyer = buyer, items = items))
+                        section?.records?.add(FertRecord(date = date, buyer = buyer, note = note, items = items))
                     } else {
                         existing.date = date
                         existing.buyer = buyer
+                        existing.note = note
                         existing.items = items
                     }
                     FertStore.save(this, mode, places)

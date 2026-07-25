@@ -38,6 +38,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.profileIcon).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
+        findViewById<TextView>(R.id.btnBell).setOnClickListener {
+            startActivity(Intent(this, UpcomingActivity::class.java))
+        }
         findViewById<CardView>(R.id.cardWorker).setOnClickListener {
             startActivity(Intent(this, WorkerEntryActivity::class.java))
         }

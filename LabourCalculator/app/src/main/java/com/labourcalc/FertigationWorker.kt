@@ -35,7 +35,8 @@ class FertigationWorker(context: Context, params: WorkerParameters) : Worker(con
                         val t = try { fmt.parse(r.date)?.time ?: 0L } catch (e: Exception) { 0L }
                         if (t >= todayStart) {
                             val ferts = r.items.joinToString(", ") { "${it.name} ${it.qty}${it.unit}" }
-                            upcoming.add("$tag ${p.name} › ${s.name}: ${r.date} ($ferts)")
+                            val noteTxt = if (r.note.isNotBlank()) " 📝${r.note}" else ""
+                            upcoming.add("$tag ${p.name}: ${r.date} ($ferts)$noteTxt")
                         }
                     }
                 }
@@ -69,7 +70,7 @@ class FertigationWorker(context: Context, params: WorkerParameters) : Worker(con
 
     companion object {
         const val CHANNEL_ID = "fertigation_reminders"
-        const val WORK_NAME = "fertigation_morning_6am"
+        const val WORK_NAME = "farm_schedule_12h"
 
         /** Daily reminder at ~6:00 AM about today's and upcoming fertigation dates. */
         fun schedule(context: Context) {
@@ -80,7 +81,7 @@ class FertigationWorker(context: Context, params: WorkerParameters) : Worker(con
                 if (before(now) || timeInMillis == now.timeInMillis) add(Calendar.DAY_OF_YEAR, 1)
             }
             val delay = next6.timeInMillis - now.timeInMillis
-            val request = PeriodicWorkRequestBuilder<FertigationWorker>(24, TimeUnit.HOURS)
+            val request = PeriodicWorkRequestBuilder<FertigationWorker>(12, TimeUnit.HOURS)
                 .setInitialDelay(delay, TimeUnit.MILLISECONDS)
                 .build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(

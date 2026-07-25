@@ -11,6 +11,7 @@ data class FertRecord(
     var id: Long = System.currentTimeMillis(),
     var date: String = "",
     var buyer: String = "",
+    var note: String = "",
     var items: MutableList<FertItem> = mutableListOf()
 )
 
@@ -56,7 +57,7 @@ object FertStore {
                     val recs = s.optJSONArray("records") ?: JSONArray()
                     for (k in 0 until recs.length()) {
                         val r = recs.getJSONObject(k)
-                        val rec = FertRecord(id = r.optLong("id"), date = r.optString("date"), buyer = r.optString("buyer"))
+                        val rec = FertRecord(id = r.optLong("id"), date = r.optString("date"), buyer = r.optString("buyer"), note = r.optString("note"))
                         val items = r.optJSONArray("items") ?: JSONArray()
                         for (m in 0 until items.length()) {
                             val it = items.getJSONObject(m)
@@ -90,7 +91,7 @@ object FertStore {
                     }
                     recs.put(
                         JSONObject().put("id", r.id).put("date", r.date)
-                            .put("buyer", r.buyer).put("items", items)
+                            .put("buyer", r.buyer).put("note", r.note).put("items", items)
                     )
                 }
                 secs.put(JSONObject().put("id", s.id).put("name", s.name).put("records", recs))
