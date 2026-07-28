@@ -31,6 +31,13 @@ data class FertPlace(
 object FertStore {
     private const val KEY = "places"
 
+    /** Older sale entries were saved with unit "kg" before the sale unit
+     *  dropdown existed. Map them to "kgs" so totals group as one unit
+     *  instead of showing "13114.0 kg + 2844.0 kgs".
+     *  Fertigation/spraying keep "kg" as a valid distinct unit. */
+    private fun normalizeUnit(unit: String, mode: String): String =
+        if (mode == "sale" && unit.equals("kg", ignoreCase = true)) "kgs" else unit
+
     private fun prefsName(mode: String) = when (mode) {
         "spray" -> "spray_store"
         "sale" -> "sale_store"
@@ -64,7 +71,7 @@ object FertStore {
                             rec.items.add(
                                 FertItem(
                                     it.optString("n"), it.optDouble("q", 0.0),
-                                    it.optString("u", "kg"), it.optDouble("p", 0.0)
+                                    normalizeUnit(it.optString("u", "kg"), mode), it.optDouble("p", 0.0)
                                 )
                             )
                         }
