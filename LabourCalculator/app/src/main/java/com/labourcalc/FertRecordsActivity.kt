@@ -110,7 +110,7 @@ class FertRecordsActivity : AppCompatActivity() {
         try { fmt.parse(d)?.time ?: 0L } catch (e: Exception) { 0L }
 
     private fun sortedRecords(): List<FertRecord> =
-        section?.records?.sortedBy { dateMillis(it.date) } ?: emptyList()
+        section?.records?.sortedByDescending { dateMillis(it.date) } ?: emptyList()
 
     private fun rows(): List<Pair<String, String>> {
         val todayStart = Calendar.getInstance().apply {
