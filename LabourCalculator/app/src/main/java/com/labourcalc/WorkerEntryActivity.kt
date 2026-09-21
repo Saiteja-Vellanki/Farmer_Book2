@@ -113,8 +113,7 @@ class WorkerEntryActivity : AppCompatActivity() {
         labours.sortWith(Comparator { a, b ->
             when {
                 a.isPaid != b.isPaid -> if (a.isPaid) 1 else -1
-                a.isPaid -> dateMillis(b).compareTo(dateMillis(a))
-                else -> dateMillis(a).compareTo(dateMillis(b))
+                else -> dateMillis(b).compareTo(dateMillis(a))
             }
         })
     }
