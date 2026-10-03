@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <include domain="sharedpref" path="labour_store.xml" />
+    <include domain="sharedpref" path="fert_store.xml" />
+    <include domain="sharedpref" path="spray_store.xml" />
+    <include domain="sharedpref" path="sale_store.xml" />
+    <exclude domain="sharedpref" path="setup_prefs.xml" />
+</full-backup-content>

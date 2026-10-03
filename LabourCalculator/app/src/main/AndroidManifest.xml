@@ -10,6 +10,9 @@
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/Theme.LabourCalc"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:enableOnBackInvokedCallback="true"
         android:supportsRtl="true">
 
         <service
@@ -30,6 +33,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".WorkerPlacesActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:exported="false" />
 
         <activity
             android:name=".WorkerEntryActivity"

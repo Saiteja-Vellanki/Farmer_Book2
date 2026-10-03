@@ -1,0 +1,125 @@
+package com.farmerbook.app
+
+import android.content.Context
+import org.json.JSONArray
+import org.json.JSONObject
+import kotlin.concurrent.thread
+
+data class FertItem(var name: String = "", var qty: Double = 0.0, var unit: String = "kg", var price: Double = 0.0)
+
+data class FertRecord(
+    var id: Long = System.currentTimeMillis(),
+    var date: String = "",
+    var buyer: String = "",
+    var note: String = "",
+    var items: MutableList<FertItem> = mutableListOf()
+)
+
+data class FertSection(
+    var id: Long = System.currentTimeMillis(),
+    var name: String = "",
+    var records: MutableList<FertRecord> = mutableListOf()
+)
+
+data class FertPlace(
+    var id: Long = System.currentTimeMillis(),
+    var name: String = "",
+    var acres: Double = 0.0,
+    var sections: MutableList<FertSection> = mutableListOf()
+)
+
+object FertStore {
+    private const val KEY = "places"
+
+    /** Older sale entries were saved with unit "kg" before the sale unit
+     *  dropdown existed. Map them to "kgs" so totals group as one unit
+     *  instead of showing "13114.0 kg + 2844.0 kgs".
+     *  Fertigation/spraying keep "kg" as a valid distinct unit. */
+    private fun normalizeUnit(unit: String, mode: String): String =
+        if (mode == "sale" && unit.equals("kg", ignoreCase = true)) "kgs" else unit
+
+    private fun prefsName(mode: String) = when (mode) {
+        "spray" -> "spray_store"
+        "sale" -> "sale_store"
+        else -> "fert_store"
+    }
+
+    fun load(context: Context, mode: String): MutableList<FertPlace> {
+        val json = context.getSharedPreferences(prefsName(mode), Context.MODE_PRIVATE)
+            .getString(KEY, "[]") ?: "[]"
+        val out = mutableListOf<FertPlace>()
+        try {
+            val arr = JSONArray(json)
+            for (i in 0 until arr.length()) {
+                val p = arr.getJSONObject(i)
+                val place = FertPlace(
+                    id = p.optLong("id"),
+                    name = p.optString("name"),
+                    acres = p.optDouble("acres", 0.0)
+                )
+                val secs = p.optJSONArray("sections") ?: JSONArray()
+                for (j in 0 until secs.length()) {
+                    val s = secs.getJSONObject(j)
+                    val sec = FertSection(id = s.optLong("id"), name = s.optString("name"))
+                    val recs = s.optJSONArray("records") ?: JSONArray()
+                    for (k in 0 until recs.length()) {
+                        val r = recs.getJSONObject(k)
+                        val rec = FertRecord(id = r.optLong("id"), date = r.optString("date"), buyer = r.optString("buyer"), note = r.optString("note"))
+                        val items = r.optJSONArray("items") ?: JSONArray()
+                        for (m in 0 until items.length()) {
+                            val it = items.getJSONObject(m)
+                            rec.items.add(
+                                FertItem(
+                                    it.optString("n"), it.optDouble("q", 0.0),
+                                    normalizeUnit(it.optString("u", "kg"), mode), it.optDouble("p", 0.0)
+                                )
+                            )
+                        }
+                        sec.records.add(rec)
+                    }
+                    place.sections.add(sec)
+                }
+                out.add(place)
+            }
+        } catch (e: Exception) { }
+        return out
+    }
+
+    fun save(context: Context, mode: String, places: List<FertPlace>) {
+        val arr = JSONArray()
+        for (p in places) {
+            val secs = JSONArray()
+            for (s in p.sections) {
+                val recs = JSONArray()
+                for (r in s.records) {
+                    val items = JSONArray()
+                    for (it in r.items) {
+                        items.put(JSONObject().put("n", it.name).put("q", it.qty).put("u", it.unit).put("p", it.price))
+                    }
+                    recs.put(
+                        JSONObject().put("id", r.id).put("date", r.date)
+                            .put("buyer", r.buyer).put("note", r.note).put("items", items)
+                    )
+                }
+                secs.put(JSONObject().put("id", s.id).put("name", s.name).put("records", recs))
+            }
+            arr.put(
+                JSONObject().put("id", p.id).put("name", p.name)
+                    .put("acres", p.acres).put("sections", secs)
+            )
+        }
+        context.getSharedPreferences(prefsName(mode), Context.MODE_PRIVATE)
+            .edit().putString(KEY, arr.toString()).apply()
+
+        // Mirror to its own Excel file (fertigation_data.xls / spraying_data.xls)
+        val app = context.applicationContext
+        val snapshot = places.toList()
+        thread {
+            try {
+                SetupManager.exportFertExcel(app, mode, snapshot)
+            } catch (e: Exception) {
+                // Excel mirror failed silently; JSON data is safe
+            }
+        }
+    }
+}

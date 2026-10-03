@@ -119,4 +119,10 @@
     <string name="total_kgs_chip">⚖️ %1$s</string>
     <string name="upcoming_title">🔔 Upcoming Events</string>
     <string name="no_upcoming">No upcoming events</string>
+    <string name="worker_places_title">👨‍🌾 Worker Places</string>
+    <string name="sub_worker_entries">%1$d entries • Due ₹%2$s</string>
+    <string name="tab_due">⏳ Due (%1$d)</string>
+    <string name="tab_paid">✅ Paid (%1$d)</string>
+    <string name="due_total_banner">⏳ Total Due: ₹%1$s</string>
+    <string name="paid_total_banner">✅ Total Paid: ₹%1$s</string>
 </resources>

@@ -118,4 +118,10 @@
     <string name="total_kgs_chip">⚖️ %1$s</string>
     <string name="upcoming_title">🔔 రాబోయే పనులు</string>
     <string name="no_upcoming">రాబోయే పనులు లేవు</string>
+    <string name="worker_places_title">👨‍🌾 కూలీల స్థలాలు</string>
+    <string name="sub_worker_entries">%1$d నమోదులు • బాకీ ₹%2$s</string>
+    <string name="tab_due">⏳ బాకీ (%1$d)</string>
+    <string name="tab_paid">✅ చెల్లించారు (%1$d)</string>
+    <string name="due_total_banner">⏳ మొత్తం బాకీ: ₹%1$s</string>
+    <string name="paid_total_banner">✅ మొత్తం చెల్లించింది: ₹%1$s</string>
 </resources>

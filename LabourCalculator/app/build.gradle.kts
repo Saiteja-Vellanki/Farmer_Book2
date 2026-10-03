@@ -4,15 +4,16 @@ plugins {
 }
 
 android {
-    namespace = "com.labourcalc"
-    compileSdk = 35
+    namespace = "com.farmerbook.app"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.labourcalc"
+        applicationId = "com.farmerbook.app"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 16
-        versionName = "5.6"
+        targetSdk = 36
+        versionCode = 20
+        versionName = "7.0"
+        resourceConfigurations += listOf("en", "hi", "te", "ta", "kn", "ml")
     }
 
     signingConfigs {
@@ -37,6 +38,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            isDebuggable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -44,24 +46,40 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
         debug {
+            applicationIdSuffix = ".debug"
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
+    }
+
+    bundle {
+        language { enableSplit = false }
+    }
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
 }

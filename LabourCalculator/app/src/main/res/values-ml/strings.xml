@@ -118,4 +118,10 @@
     <string name="total_kgs_chip">⚖️ %1$s</string>
     <string name="upcoming_title">🔔 വരാനിരിക്കുന്ന ജോലികൾ</string>
     <string name="no_upcoming">വരാനിരിക്കുന്ന ജോലികളില്ല</string>
+    <string name="worker_places_title">👨‍🌾 തൊഴിലാളി സ്ഥലങ്ങൾ</string>
+    <string name="sub_worker_entries">%1$d എൻട്രികൾ • ബാക്കി ₹%2$s</string>
+    <string name="tab_due">⏳ ബാക്കി (%1$d)</string>
+    <string name="tab_paid">✅ നൽകി (%1$d)</string>
+    <string name="due_total_banner">⏳ ആകെ ബാക്കി: ₹%1$s</string>
+    <string name="paid_total_banner">✅ ആകെ നൽകി: ₹%1$s</string>
 </resources>

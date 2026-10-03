@@ -118,4 +118,10 @@
     <string name="total_kgs_chip">⚖️ %1$s</string>
     <string name="upcoming_title">🔔 आगामी कार्य</string>
     <string name="no_upcoming">कोई आगामी कार्य नहीं</string>
+    <string name="worker_places_title">👨‍🌾 मज़दूर स्थान</string>
+    <string name="sub_worker_entries">%1$d एंट्री • बकाया ₹%2$s</string>
+    <string name="tab_due">⏳ बकाया (%1$d)</string>
+    <string name="tab_paid">✅ भुगतान (%1$d)</string>
+    <string name="due_total_banner">⏳ कुल बकाया: ₹%1$s</string>
+    <string name="paid_total_banner">✅ कुल भुगतान: ₹%1$s</string>
 </resources>
