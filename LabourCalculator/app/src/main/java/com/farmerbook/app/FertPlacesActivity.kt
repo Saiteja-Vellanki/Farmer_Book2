@@ -3,11 +3,12 @@ package com.farmerbook.app
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.widget.EditText
 import android.view.View
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,12 +27,32 @@ class FertPlacesActivity : AppCompatActivity() {
             else -> getString(R.string.prefix_fert)
         }
 
+    private val importPicker =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                val restored = SetupManager.importFertExcel(this, mode, uri)
+                if (restored.isEmpty()) {
+                    Toast.makeText(this, getString(R.string.no_entries_file), Toast.LENGTH_LONG).show()
+                } else {
+                    val addedPlaces = mergeImported(restored)
+                    FertStore.save(this, mode, places)
+                    adapter.rows = rows()
+                    adapter.notifyDataSetChanged()
+                    updateChips()
+                    Toast.makeText(this, getString(R.string.imported_n, addedPlaces), Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fert_list)
         findViewById<android.view.View>(R.id.fertHeaderBox).padBelowStatusBar()
 
-        findViewById<TextView>(R.id.tvFertHeader).text = getString(R.string.places_title, titlePrefix)
+        val header = findViewById<TextView>(R.id.tvFertHeader)
+        header.text = getString(R.string.places_title, titlePrefix)
+        header.setOnLongClickListener { openImportPicker(); true }
+
         places = FertStore.load(this, mode)
         updateChips()
 
@@ -46,6 +67,15 @@ class FertPlacesActivity : AppCompatActivity() {
         fab.liftAboveNavBar()
         fab.text = getString(R.string.add_place)
         fab.setOnClickListener { addPlaceDialog() }
+
+        if (places.isEmpty()) {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.restore_title)
+                .setMessage(R.string.restore_msg)
+                .setPositiveButton(R.string.choose_file) { _, _ -> openImportPicker() }
+                .setNegativeButton(R.string.start_fresh, null)
+                .show()
+        }
     }
 
     override fun onResume() {
@@ -54,6 +84,44 @@ class FertPlacesActivity : AppCompatActivity() {
         adapter.rows = rows()
         adapter.notifyDataSetChanged()
         updateChips()
+    }
+
+    private fun openImportPicker() {
+        importPicker.launch(arrayOf("application/vnd.ms-excel", "application/octet-stream", "*/*"))
+    }
+
+    /** Merges imported places into the current list: new places are added
+     *  whole; for places that already exist (by name), only genuinely new
+     *  sections/records are merged in, so importing the same backup twice
+     *  never creates duplicates. Returns how many places were touched. */
+    private fun mergeImported(imported: List<FertPlace>): Int {
+        var touched = 0
+        for (ip in imported) {
+            val existing = places.find { it.name == ip.name }
+            if (existing == null) {
+                places.add(ip)
+                touched++
+                continue
+            }
+            var changed = false
+            for (isec in ip.sections) {
+                val esec = existing.sections.find { it.name == isec.name }
+                if (esec == null) {
+                    existing.sections.add(isec)
+                    changed = true
+                    continue
+                }
+                for (irec in isec.records) {
+                    val dup = esec.records.any { it.date == irec.date && it.buyer == irec.buyer }
+                    if (!dup) {
+                        esec.records.add(irec)
+                        changed = true
+                    }
+                }
+            }
+            if (changed) touched++
+        }
+        return touched
     }
 
     private fun updateChips() {

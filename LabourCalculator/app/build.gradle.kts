@@ -11,8 +11,8 @@ android {
         applicationId = "com.farmerbook.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 20
-        versionName = "7.0"
+        versionCode = 22
+        versionName = "7.2"
         resourceConfigurations += listOf("en", "hi", "te", "ta", "kn", "ml")
     }
 

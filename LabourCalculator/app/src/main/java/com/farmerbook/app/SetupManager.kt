@@ -41,16 +41,43 @@ object SetupManager {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY_NAME, "") ?: ""
 
-    /** OutputStream for Documents/worker_data/<fileName>.
-     *  API 29+: MediaStore (no permission). API <=28: direct file (WRITE permission). */
+    private const val URI_CACHE_PREFS = "excel_uri_cache"
+
+    private fun cachedUri(context: Context, fileName: String): String? =
+        context.getSharedPreferences(URI_CACHE_PREFS, Context.MODE_PRIVATE)
+            .getString(fileName, null)
+
+    private fun cacheUri(context: Context, fileName: String, uri: String) {
+        context.getSharedPreferences(URI_CACHE_PREFS, Context.MODE_PRIVATE)
+            .edit().putString(fileName, uri).apply()
+    }
+
+    /** OutputStream for Documents/Farmer_Book/<fileName>.
+     *  API 29+: MediaStore (no permission). API <=28: direct file (WRITE permission).
+     *
+     *  Reuses the exact same MediaStore entry on every call by remembering its URI
+     *  after the first successful write, rather than re-searching for a matching
+     *  file by path+name each time. Path-matching across RELATIVE_PATH values is
+     *  inconsistently normalized on some Android versions/OEM skins, which can
+     *  cause a search to silently miss the existing file - and when that happens,
+     *  MediaStore doesn't error, it just creates "labour_data (1).xls" and so on,
+     *  forever. Remembering the URI directly sidesteps that fragility entirely:
+     *  once we have a working reference, we never need to search again. */
     private fun excelOutputStream(context: Context, fileName: String): OutputStream {
         if (Build.VERSION.SDK_INT >= 29) {
             val resolver = context.contentResolver
             val collection = MediaStore.Files.getContentUri("external")
-            // Trailing slash MUST match exactly between query and insert, or MediaStore
-            // treats every save as a brand-new file instead of overwriting the existing one.
-            val relPath = Environment.DIRECTORY_DOCUMENTS + "/" + REL_DIR + "/"
 
+            // Fast path: reuse the exact URI that worked last time.
+            cachedUri(context, fileName)?.let { cached ->
+                try {
+                    return resolver.openOutputStream(Uri.parse(cached), "wt")!!
+                } catch (e: Exception) {
+                    // File was moved/deleted/inaccessible - fall through and re-resolve it below.
+                }
+            }
+
+            val relPath = Environment.DIRECTORY_DOCUMENTS + "/" + REL_DIR + "/"
             val sel = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " +
                     MediaStore.MediaColumns.DISPLAY_NAME + "=?"
             resolver.query(
@@ -59,7 +86,15 @@ object SetupManager {
             )?.use { c ->
                 if (c.moveToFirst()) {
                     val uri = ContentUris.withAppendedId(collection, c.getLong(0))
-                    resolver.openOutputStream(uri, "wt")?.let { return it }
+                    try {
+                        val out = resolver.openOutputStream(uri, "wt")
+                        if (out != null) {
+                            cacheUri(context, fileName, uri.toString())
+                            return out
+                        }
+                    } catch (e: Exception) {
+                        // Found a matching entry but can't write to it - fall through to insert.
+                    }
                 }
             }
             val cv = ContentValues().apply {
@@ -69,6 +104,7 @@ object SetupManager {
             }
             val uri = resolver.insert(collection, cv)
                 ?: throw IllegalStateException("Cannot create Excel file")
+            cacheUri(context, fileName, uri.toString())
             return resolver.openOutputStream(uri, "wt")
                 ?: throw IllegalStateException("Cannot open Excel file")
         } else {
@@ -165,6 +201,74 @@ object SetupManager {
             wb.write()
             wb.close()
         }
+    }
+
+    /** Restore fertigation/spraying/sale data from a user-picked .xls backup
+     *  (Storage Access Framework). Rebuilds the Place → Section → Record → Item
+     *  hierarchy by grouping rows back together. Used for recovery after a
+     *  reinstall, new device, or package-name change where app-private data
+     *  (SharedPreferences) is lost but the Excel mirror in Documents survives. */
+    fun importFertExcel(context: Context, mode: String, uri: Uri): MutableList<FertPlace> {
+        val places = mutableListOf<FertPlace>()
+        try {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                val wb = Workbook.getWorkbook(input)
+                val sheet = wb.getSheet(0)
+
+                fun findOrCreatePlace(name: String, acres: Double): FertPlace {
+                    places.find { it.name == name }?.let { return it }
+                    val p = FertPlace(name = name, acres = acres)
+                    places.add(p)
+                    return p
+                }
+                fun findOrCreateSection(p: FertPlace, name: String): FertSection {
+                    p.sections.find { it.name == name }?.let { return it }
+                    val s = FertSection(name = name)
+                    p.sections.add(s)
+                    return s
+                }
+                fun findOrCreateRecord(s: FertSection, date: String, buyer: String): FertRecord {
+                    s.records.find { it.date == date && it.buyer == buyer }?.let { return it }
+                    val r = FertRecord(date = date, buyer = buyer)
+                    s.records.add(r)
+                    return r
+                }
+
+                for (r in 1 until sheet.rows) {
+                    fun cell(c: Int): String =
+                        if (c < sheet.columns) sheet.getCell(c, r).contents.trim() else ""
+
+                    if (mode == "sale") {
+                        val placeName = cell(0)
+                        val date = cell(1)
+                        if (placeName.isBlank() || date.isBlank()) continue // skip blank/TOTAL row
+                        val buyer = cell(2)
+                        val place = findOrCreatePlace(placeName, 0.0)
+                        val section = findOrCreateSection(place, "Main")
+                        val record = findOrCreateRecord(section, date, buyer)
+                        val qty = cell(4).toDoubleOrNull() ?: 0.0
+                        val price = cell(6).toDoubleOrNull() ?: 0.0
+                        record.items.add(FertItem(cell(3), qty, cell(5).ifBlank { "kgs" }, price))
+                    } else {
+                        val placeName = cell(0)
+                        if (placeName.isBlank()) continue
+                        val acres = cell(1).toDoubleOrNull() ?: 0.0
+                        val sectionName = cell(2).ifBlank { "Main" }
+                        val date = cell(3)
+                        val place = findOrCreatePlace(placeName, acres)
+                        val section = findOrCreateSection(place, sectionName)
+                        val record = findOrCreateRecord(section, date, "")
+                        if (record.note.isBlank()) record.note = cell(7)
+                        val qty = cell(5).toDoubleOrNull() ?: 0.0
+                        record.items.add(FertItem(cell(4), qty, cell(6).ifBlank { "kg" }))
+                    }
+                }
+                wb.close()
+            }
+        } catch (e: Exception) {
+            // unreadable file - return whatever parsed so far
+        }
+        return places
     }
 
     /** Restore entries from a user-picked .xls file (Storage Access Framework). */
