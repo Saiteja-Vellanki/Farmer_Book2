@@ -78,14 +78,26 @@ object SetupManager {
             }
 
             val relPath = Environment.DIRECTORY_DOCUMENTS + "/" + REL_DIR + "/"
-            val sel = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " +
-                    MediaStore.MediaColumns.DISPLAY_NAME + "=?"
+
+            // Match by DISPLAY_NAME, then confirm folder by a tolerant *contains*
+            // check on RELATIVE_PATH rather than exact equality - some Android
+            // versions/OEM skins normalize slashes or casing differently, and an
+            // exact-match query can silently miss a file that genuinely exists,
+            // which is what causes MediaStore to insert a "(1)" duplicate instead
+            // of reusing it. A loose match finds the real file regardless of how
+            // that device happens to have stored the path string.
             resolver.query(
-                collection, arrayOf(MediaStore.MediaColumns._ID),
-                sel, arrayOf(relPath, fileName), null
+                collection,
+                arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.RELATIVE_PATH),
+                MediaStore.MediaColumns.DISPLAY_NAME + "=?",
+                arrayOf(fileName), null
             )?.use { c ->
-                if (c.moveToFirst()) {
-                    val uri = ContentUris.withAppendedId(collection, c.getLong(0))
+                val idCol = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+                val pathCol = c.getColumnIndexOrThrow(MediaStore.MediaColumns.RELATIVE_PATH)
+                while (c.moveToNext()) {
+                    val path = c.getString(pathCol) ?: ""
+                    if (!path.contains(REL_DIR, ignoreCase = true)) continue
+                    val uri = ContentUris.withAppendedId(collection, c.getLong(idCol))
                     try {
                         val out = resolver.openOutputStream(uri, "wt")
                         if (out != null) {
@@ -93,10 +105,11 @@ object SetupManager {
                             return out
                         }
                     } catch (e: Exception) {
-                        // Found a matching entry but can't write to it - fall through to insert.
+                        // Can't write to this match - keep checking other rows, if any.
                     }
                 }
             }
+
             val cv = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                 put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.ms-excel")

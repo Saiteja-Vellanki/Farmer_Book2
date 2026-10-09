@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,14 +18,32 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 class WorkerPlacesActivity : AppCompatActivity() {
 
     private lateinit var placeNames: List<String>
-    private lateinit var allLabours: List<Labour>
+    private lateinit var allLabours: MutableList<Labour>
     private lateinit var adapter: FertAdapter
+
+    private val importPicker =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                val restored = SetupManager.importExcel(this, uri)
+                if (restored.isEmpty()) {
+                    Toast.makeText(this, getString(R.string.no_entries_file), Toast.LENGTH_LONG).show()
+                } else {
+                    val added = mergeImported(restored)
+                    LabourStore.save(this, allLabours)
+                    loadData()
+                    Toast.makeText(this, getString(R.string.imported_n, added), Toast.LENGTH_LONG).show()
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fert_list)
         findViewById<View>(R.id.fertHeaderBox).padBelowStatusBar()
-        findViewById<TextView>(R.id.tvFertHeader).text = getString(R.string.worker_places_title)
+
+        val header = findViewById<TextView>(R.id.tvFertHeader)
+        header.text = getString(R.string.worker_places_title)
+        header.setOnLongClickListener { openImportPicker(); true }
 
         val rv = findViewById<RecyclerView>(R.id.fertRecycler)
         rv.layoutManager = LinearLayoutManager(this)
@@ -39,11 +58,40 @@ class WorkerPlacesActivity : AppCompatActivity() {
         fab.setOnClickListener { addPlaceDialog() }
 
         loadData()
+
+        if (placeNames.isEmpty()) {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.restore_title)
+                .setMessage(R.string.restore_msg)
+                .setPositiveButton(R.string.choose_file) { _, _ -> openImportPicker() }
+                .setNegativeButton(R.string.start_fresh, null)
+                .show()
+        }
     }
 
     override fun onResume() {
         super.onResume()
         loadData()
+    }
+
+    private fun openImportPicker() {
+        importPicker.launch(arrayOf("application/vnd.ms-excel", "application/octet-stream", "*/*"))
+    }
+
+    /** Avoids adding exact duplicate rows if the same backup is imported twice. */
+    private fun mergeImported(restored: List<Labour>): Int {
+        var added = 0
+        for (r in restored) {
+            val dup = allLabours.any {
+                it.date == r.date && it.place == r.place &&
+                        it.workers == r.workers && it.costPerWorker == r.costPerWorker
+            }
+            if (!dup) {
+                allLabours.add(r)
+                added++
+            }
+        }
+        return added
     }
 
     private fun loadData() {
